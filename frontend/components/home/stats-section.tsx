@@ -4,6 +4,37 @@ import { motion } from 'framer-motion'
 import { Users, Trophy, Swords, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { API_URL } from '@/lib/api'
+import { useCounter } from '@/hooks/use-counter'
+
+function AnimatedStat({
+  value,
+  suffix,
+  label,
+  icon: Icon,
+}: {
+  value: number
+  suffix: string
+  label: string
+  icon: React.ElementType
+}) {
+  const { count, ref } = useCounter(value)
+
+  return (
+    <div
+      ref={ref}
+      className="glass rounded-2xl p-6 md:p-8 h-full group hover:border-primary/30 transition-colors"
+    >
+      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+        <Icon className="w-6 h-6 text-primary" />
+      </div>
+      <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">
+        {count.toLocaleString()}
+        {suffix}
+      </div>
+      <div className="text-sm text-muted-foreground">{label}</div>
+    </div>
+  )
+}
 
 export function StatsSection() {
   const [stats, setStats] = useState({
@@ -74,9 +105,15 @@ export function StatsSection() {
   ]
 
   return (
-    <section className="py-24 px-4">
+    <section
+      className="py-24 px-4"
+      style={{
+        background: 'var(--surface)',
+        borderTop: '1px solid var(--border-subtle)',
+        borderBottom: '1px solid var(--border-subtle)',
+      }}
+    >
       <div className="max-w-6xl mx-auto">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -87,13 +124,11 @@ export function StatsSection() {
           <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             La Escena Competitiva
           </h2>
-
           <p className="text-3xl md:text-4xl font-bold text-foreground">
             Comunidad de Campeones en Crecimiento
           </p>
         </motion.div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {statItems.map((stat, index) => (
             <motion.div
@@ -103,20 +138,12 @@ export function StatsSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
             >
-              <div className="glass rounded-2xl p-6 md:p-8 h-full group hover:border-primary/30 transition-colors">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <stat.icon className="w-6 h-6 text-primary" />
-                </div>
-
-                <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">
-                  {stat.value.toLocaleString()}
-                  {stat.suffix}
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </div>
+              <AnimatedStat
+                value={stat.value}
+                suffix={stat.suffix}
+                label={stat.label}
+                icon={stat.icon}
+              />
             </motion.div>
           ))}
         </div>

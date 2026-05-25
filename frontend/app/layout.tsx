@@ -1,22 +1,18 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, Playfair_Display } from 'next/font/google'
+import { Bebas_Neue, DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const geist = Geist({ 
-  subsets: ["latin"],
-  variable: '--font-geist'
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-display',
 })
 
-const geistMono = Geist_Mono({ 
-  subsets: ["latin"],
-  variable: '--font-geist-mono'
-})
-
-const playfair = Playfair_Display({ 
-  subsets: ["latin"],
-  variable: '--font-playfair'
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-body',
 })
 
 export const metadata: Metadata = {
@@ -49,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${playfair.variable} bg-background`}>
+    <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable} bg-background`}>
       <body className="font-sans antialiased min-h-screen">
         {children}
         <Toaster theme="dark" richColors position="top-center" />

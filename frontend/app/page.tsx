@@ -5,16 +5,25 @@ import { StatsSection } from '@/components/home/stats-section'
 import { TopPlayersSection } from '@/components/home/top-players-section'
 import { TournamentsSection } from '@/components/home/tournaments-section'
 import { FeaturedPlayerSection } from '@/components/home/featured-player-section'
+import { ScrollRevealSection } from '@/components/scroll-reveal-section'
 
 export default function HomePage() {
   return (
     <main className="min-h-screen">
       <Navbar />
       <Hero />
-      <StatsSection />
-      <TopPlayersSection />
-      <TournamentsSection />
-      <FeaturedPlayerSection />
+      <ScrollRevealSection>
+        <StatsSection />
+      </ScrollRevealSection>
+      <ScrollRevealSection>
+        <TopPlayersSection />
+      </ScrollRevealSection>
+      <ScrollRevealSection>
+        <TournamentsSection />
+      </ScrollRevealSection>
+      <ScrollRevealSection>
+        <FeaturedPlayerSection />
+      </ScrollRevealSection>
       <Footer />
     </main>
   )

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Crown, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
@@ -30,19 +30,19 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <motion.div
-              whileHover={{ rotate: 15 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-              className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"
-            >
-              <Crown className="w-5 h-5 text-primary" />
-            </motion.div>
+            <img
+              src="https://ajedrezenmendoza.com.ar/uploads/content/club/49b58-uncuio.jpg"
+              alt="UNCuyo"
+              width={40}
+              height={40}
+              className="rounded-xl object-cover"
+            />
             <div className="flex flex-col">
-              <span className="text-lg font-bold tracking-tight text-foreground">
-                Ranking
+              <span className="font-display text-xl leading-none text-foreground tracking-wider">
+                RANKING UNCUYO
               </span>
-              <span className="text-xs text-primary font-medium -mt-1">
-                UNCuyo
+              <span className="text-[10px] text-primary font-medium tracking-widest uppercase mt-0.5">
+                AJEDREZ UNIVERSITARIO
               </span>
             </div>
           </Link>
