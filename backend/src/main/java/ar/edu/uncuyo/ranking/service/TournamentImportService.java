@@ -64,23 +64,27 @@ public class TournamentImportService {
             String mappingsJson,
             boolean dryRun) {
         ParsedCrossTable parsed = crossTableExcelParser.parse(crossTableFile, classificationFile);
-        List<String> uniqueClubs = collectUniqueClubs(parsed);
+        boolean explicitAcademic = parsed.hasExplicitAcademicColumns();
+        List<String> uniqueClubs = explicitAcademic ? List.of() : collectUniqueClubs(parsed);
         Map<String, ClubCareerMapping> mappings = parseMappings(mappingsJson);
-        boolean mappingsComplete = areMappingsComplete(uniqueClubs, mappings);
+        boolean mappingsComplete = explicitAcademic
+                ? areExplicitAcademicDataComplete(parsed)
+                : areMappingsComplete(uniqueClubs, mappings);
 
         ImportResult result = new ImportResult();
         result.setPreview(dryRun);
         result.setTournamentName(parsed.tournamentName());
         result.setRounds(parsed.rounds());
+        result.setExplicitAcademicColumns(explicitAcademic);
         result.setUniqueClubValues(uniqueClubs);
-        result.setClubSuggestions(buildSuggestions(uniqueClubs));
+        result.setClubSuggestions(explicitAcademic ? List.of() : buildSuggestions(uniqueClubs));
         result.setMappingsComplete(mappingsComplete);
 
         if (!mappingsComplete) {
             return result;
         }
 
-        ImportPlan plan = buildPlan(parsed, mappings);
+        ImportPlan plan = buildPlan(parsed, mappings, explicitAcademic);
         result.setPlayersCreated(plan.playersCreated());
         result.setPlayersSkipped(plan.playersSkipped());
         result.setMatchesCreated(plan.matchesToCreate());
@@ -137,11 +141,24 @@ public class TournamentImportService {
         return true;
     }
 
+    private boolean areExplicitAcademicDataComplete(ParsedCrossTable parsed) {
+        for (ParsedPlayer player : parsed.players()) {
+            if (player.faculty() == null || player.faculty().isBlank()
+                    || player.career() == null || player.career().isBlank()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private String normalizeClubKey(String clubCiudad) {
         return clubCiudad == null ? "" : clubCiudad.trim();
     }
 
-    private ImportPlan buildPlan(ParsedCrossTable parsed, Map<String, ClubCareerMapping> mappings) {
+    private ImportPlan buildPlan(
+            ParsedCrossTable parsed,
+            Map<String, ClubCareerMapping> mappings,
+            boolean explicitAcademic) {
         Map<String, Player> playersByNormalizedName = indexExistingPlayers();
         Set<String> newNamesScheduledInImport = new HashSet<>();
         int playersCreated = 0;
@@ -149,8 +166,21 @@ public class TournamentImportService {
         List<ResolvedPlayer> resolvedPlayers = new ArrayList<>();
 
         for (ParsedPlayer parsedPlayer : parsed.players()) {
-            String clubKey = normalizeClubKey(parsedPlayer.clubCiudad());
-            ClubCareerMapping mapping = mappings.get(clubKey);
+            String faculty;
+            String career;
+            if (explicitAcademic) {
+                faculty = parsedPlayer.faculty().trim();
+                career = parsedPlayer.career().trim();
+            } else {
+                String clubKey = normalizeClubKey(parsedPlayer.clubCiudad());
+                ClubCareerMapping mapping = mappings.get(clubKey);
+                if (mapping == null) {
+                    throw new BadRequestException("Missing mapping for club/ciudad: " + clubLabel(clubKey));
+                }
+                faculty = mapping.getFaculty().trim();
+                career = mapping.getCareer().trim();
+            }
+
             String normalizedName = PlayerNameNormalizer.normalize(parsedPlayer.fullName());
 
             Player existingPlayer = playersByNormalizedName.get(normalizedName);
@@ -175,8 +205,8 @@ public class TournamentImportService {
                     existingPlayer,
                     isNew,
                     displayElo,
-                    mapping.getFaculty().trim(),
-                    mapping.getCareer().trim()));
+                    faculty,
+                    career));
         }
 
         int matchesToCreate = countMatches(parsed, resolvedPlayers);
@@ -221,7 +251,7 @@ public class TournamentImportService {
 
             if (player == null) {
                 PlayerRequest request = new PlayerRequest();
-                request.setFullName(PlayerNameNormalizer.toCanonical(resolved.parsedPlayer().fullName()));
+                request.setFullName(resolved.parsedPlayer().fullName());
                 request.setFaculty(resolved.faculty());
                 request.setCareer(resolved.career());
                 Long newId = playerService.create(request).getId();
@@ -335,5 +365,9 @@ public class TournamentImportService {
         private static String normalizeClub(String clubCiudad) {
             return clubCiudad == null ? "" : clubCiudad.trim();
         }
+    }
+
+    private static String clubLabel(String clubKey) {
+        return clubKey == null || clubKey.isBlank() ? "(Sin club/ciudad)" : clubKey;
     }
 }

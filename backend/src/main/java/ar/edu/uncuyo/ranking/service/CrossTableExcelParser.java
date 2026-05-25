@@ -14,9 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -57,14 +59,20 @@ public class CrossTableExcelParser {
             }
 
             String tournamentName = readRequiredCell(sheet, ROW_TOURNAMENT_NAME, 0);
-            List<Integer> roundColumns = detectRoundColumns(sheet.getRow(ROW_HEADER));
+            Row headerRow = sheet.getRow(ROW_HEADER);
+            List<Integer> roundColumns = detectRoundColumns(headerRow);
             if (roundColumns.isEmpty()) {
                 throw invalidFormat();
             }
 
-            Map<Integer, String> seedToClub = classificationFile != null && !classificationFile.isEmpty()
-                    ? parseClassificationFile(classificationFile)
-                    : Map.of();
+            AcademicColumns academicColumns = detectAcademicColumns(headerRow);
+            boolean hasExplicitAcademicColumns = academicColumns.hasBoth();
+
+            Map<Integer, String> seedToClub = hasExplicitAcademicColumns
+                    ? Map.of()
+                    : (classificationFile != null && !classificationFile.isEmpty()
+                            ? parseClassificationFile(classificationFile)
+                            : Map.of());
 
             List<ParsedPlayer> players = new ArrayList<>();
             for (int rowIndex = ROW_FIRST_PLAYER; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -84,7 +92,17 @@ public class CrossTableExcelParser {
                 }
 
                 int excelElo = readElo(row.getCell(COL_ELO));
-                String clubCiudad = seedToClub.getOrDefault(seed.get(), "");
+                String clubCiudad = hasExplicitAcademicColumns
+                        ? ""
+                        : seedToClub.getOrDefault(seed.get(), "");
+
+                String faculty = "";
+                String career = "";
+                if (hasExplicitAcademicColumns) {
+                    faculty = UncuyoFacultyCatalog.resolve(
+                            readCell(row.getCell(academicColumns.facultadColumn())));
+                    career = toCanonicalCareer(readCell(row.getCell(academicColumns.carreraColumn())));
+                }
 
                 List<ParsedRoundResult> roundResults = new ArrayList<>();
                 for (int roundIndex = 0; roundIndex < roundColumns.size(); roundIndex++) {
@@ -100,9 +118,11 @@ public class CrossTableExcelParser {
 
                 players.add(new ParsedPlayer(
                         seed.get(),
-                        fullName.trim(),
+                        PlayerNameNormalizer.toDisplayName(fullName),
                         excelElo,
                         clubCiudad,
+                        faculty,
+                        career,
                         roundResults));
             }
 
@@ -110,7 +130,11 @@ public class CrossTableExcelParser {
                 throw invalidFormat();
             }
 
-            return new ParsedCrossTable(tournamentName.trim(), roundColumns.size(), players);
+            return new ParsedCrossTable(
+                    tournamentName.trim(),
+                    roundColumns.size(),
+                    hasExplicitAcademicColumns,
+                    players);
         } catch (BadRequestException ex) {
             throw ex;
         } catch (IOException ex) {
@@ -154,6 +178,40 @@ public class CrossTableExcelParser {
         String title = titleRow != null ? readCell(titleRow.getCell(0)) : null;
         return (title != null && title.toLowerCase().contains("cuadro"))
                 || !detectRoundColumns(header).isEmpty();
+    }
+
+    private AcademicColumns detectAcademicColumns(Row headerRow) {
+        Integer facultadColumn = null;
+        Integer carreraColumn = null;
+        if (headerRow == null) {
+            return new AcademicColumns(null, null);
+        }
+        for (int columnIndex = 0; columnIndex < headerRow.getLastCellNum(); columnIndex++) {
+            String header = normalizeHeader(readCell(headerRow.getCell(columnIndex)));
+            if ("FACULTAD".equals(header)) {
+                facultadColumn = columnIndex;
+            }
+            if ("CARRERA".equals(header)) {
+                carreraColumn = columnIndex;
+            }
+        }
+        return new AcademicColumns(facultadColumn, carreraColumn);
+    }
+
+    private String normalizeHeader(String header) {
+        if (header == null || header.isBlank()) {
+            return "";
+        }
+        String withoutAccents = Normalizer.normalize(header.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return withoutAccents.toUpperCase(Locale.ROOT).replaceAll("\\s+", " ");
+    }
+
+    private String toCanonicalCareer(String career) {
+        if (career == null) {
+            return "";
+        }
+        return career.trim().replaceAll("\\s+", " ");
     }
 
     private List<Integer> detectRoundColumns(Row headerRow) {
@@ -282,7 +340,17 @@ public class CrossTableExcelParser {
                 "El archivo no tiene el formato esperado de Chess Results (Cuadro cruzado)");
     }
 
-    public record ParsedCrossTable(String tournamentName, int rounds, List<ParsedPlayer> players) {
+    private record AcademicColumns(Integer facultadColumn, Integer carreraColumn) {
+        boolean hasBoth() {
+            return facultadColumn != null && carreraColumn != null;
+        }
+    }
+
+    public record ParsedCrossTable(
+            String tournamentName,
+            int rounds,
+            boolean hasExplicitAcademicColumns,
+            List<ParsedPlayer> players) {
     }
 
     public record ParsedPlayer(
@@ -290,6 +358,8 @@ public class CrossTableExcelParser {
             String fullName,
             int excelElo,
             String clubCiudad,
+            String faculty,
+            String career,
             List<ParsedRoundResult> roundResults) {
     }
 

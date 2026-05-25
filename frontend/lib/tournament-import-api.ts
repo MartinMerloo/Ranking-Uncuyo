@@ -29,6 +29,7 @@ export interface TournamentImportResult {
   rounds: number
   preview: boolean
   mappingsComplete: boolean
+  explicitAcademicColumns: boolean
   uniqueClubValues: string[]
   clubSuggestions: ClubMappingSuggestion[]
   playersList: ImportedPlayerSummary[]

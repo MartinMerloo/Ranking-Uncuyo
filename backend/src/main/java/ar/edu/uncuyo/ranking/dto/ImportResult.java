@@ -13,6 +13,7 @@ public class ImportResult {
     private int rounds;
     private boolean preview;
     private boolean mappingsComplete;
+    private boolean explicitAcademicColumns;
     private List<String> uniqueClubValues = new ArrayList<>();
     private List<ClubMappingSuggestion> clubSuggestions = new ArrayList<>();
     private List<ImportedPlayerSummary> playersList = new ArrayList<>();
@@ -79,6 +80,14 @@ public class ImportResult {
 
     public void setMappingsComplete(boolean mappingsComplete) {
         this.mappingsComplete = mappingsComplete;
+    }
+
+    public boolean isExplicitAcademicColumns() {
+        return explicitAcademicColumns;
+    }
+
+    public void setExplicitAcademicColumns(boolean explicitAcademicColumns) {
+        this.explicitAcademicColumns = explicitAcademicColumns;
     }
 
     public List<String> getUniqueClubValues() {

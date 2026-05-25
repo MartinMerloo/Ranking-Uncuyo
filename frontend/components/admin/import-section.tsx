@@ -79,6 +79,7 @@ export function ImportSection() {
   const [crossTableFile, setCrossTableFile] = useState<File | null>(null)
   const [classificationFile, setClassificationFile] = useState<File | null>(null)
   const [clubMappings, setClubMappings] = useState<ClubMappings>({})
+  const [explicitAcademicColumns, setExplicitAcademicColumns] = useState(false)
   const [discoverResult, setDiscoverResult] = useState<TournamentImportResult | null>(null)
   const [previewResult, setPreviewResult] = useState<TournamentImportResult | null>(null)
   const [finalResult, setFinalResult] = useState<TournamentImportResult | null>(null)
@@ -96,14 +97,17 @@ export function ImportSection() {
     )
   }, [discoverResult, clubMappings])
 
-  const mappingsComplete = discoverResult
-    ? discoverResult.uniqueClubValues.every((club) => isMappingComplete(clubMappings[club]))
-    : false
+  const mappingsComplete = explicitAcademicColumns
+    ? true
+    : discoverResult
+      ? discoverResult.uniqueClubValues.every((club) => isMappingComplete(clubMappings[club]))
+      : false
 
   const resetWizard = () => {
     setStep('upload')
     setCrossTableFile(null)
     setClassificationFile(null)
+    setExplicitAcademicColumns(false)
     setClubMappings({})
     setDiscoverResult(null)
     setPreviewResult(null)
@@ -133,7 +137,7 @@ export function ImportSection() {
     )
   }
 
-  const handleDiscoverClubs = async () => {
+  const handleNextFromUpload = async () => {
     if (!crossTableFile) return
     setLoading(true)
     setError(null)
@@ -144,6 +148,20 @@ export function ImportSection() {
         dryRun: true,
       })
       setDiscoverResult(result)
+      setExplicitAcademicColumns(result.explicitAcademicColumns)
+
+      if (result.explicitAcademicColumns) {
+        if (!result.mappingsComplete) {
+          toast.error(
+            'El Excel incluye columnas FACULTAD y CARRERA, pero hay filas con datos académicos incompletos.'
+          )
+          return
+        }
+        setPreviewResult(result)
+        setStep('preview')
+        return
+      }
+
       setClubMappings(suggestionsToMappings(result.clubSuggestions))
       setStep('map')
     } catch (err) {
@@ -169,6 +187,7 @@ export function ImportSection() {
         return
       }
       setPreviewResult(result)
+      setExplicitAcademicColumns(result.explicitAcademicColumns)
       setStep('preview')
     } catch (err) {
       handleError(err)
@@ -184,8 +203,8 @@ export function ImportSection() {
     try {
       const result = await postTournamentImport({
         crossTableFile,
-        classificationFile,
-        mappings: clubMappings,
+        classificationFile: explicitAcademicColumns ? null : classificationFile,
+        mappings: explicitAcademicColumns ? undefined : clubMappings,
         dryRun: false,
       })
       setFinalResult(result)
@@ -250,9 +269,9 @@ export function ImportSection() {
                     variant="outline"
                     onClick={() => {
                       setError(null)
-                      if (step === 'map') handleDiscoverClubs()
-                      else if (step === 'preview') handlePreview()
-                      else if (step === 'upload' && crossTableFile) handleDiscoverClubs()
+                      if (step === 'map') handlePreview()
+                      else if (step === 'preview') handleConfirm()
+                      else if (step === 'upload' && crossTableFile) handleNextFromUpload()
                     }}
                   >
                     Reintentar
@@ -280,8 +299,10 @@ export function ImportSection() {
               <CardHeader>
                 <CardTitle className="text-base">Paso 1 — Archivos Excel</CardTitle>
                 <CardDescription>
-                  Subí el &quot;Cuadro cruzado por ranking inicial&quot; (obligatorio) y, si tenés,
-                  la &quot;Clasificación Final&quot; para detectar club/ciudad y carreras.
+                  Subí el &quot;Cuadro cruzado por ranking inicial&quot; (obligatorio). Si el Excel
+                  incluye columnas <strong>FACULTAD</strong> y <strong>CARRERA</strong>, se usan
+                  directamente. Si no, podés subir la &quot;Clasificación Final&quot; y mapear
+                  Club/Ciudad en el paso siguiente (flujo anterior).
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -297,7 +318,7 @@ export function ImportSection() {
             />
 
             <UploadZone
-              title="Clasificación Final (.xlsx, opcional)"
+              title="Clasificación Final (.xlsx, opcional — solo sin columnas FACULTAD/CARRERA)"
               file={classificationFile}
               onFile={(f) => acceptXlsx(f, setClassificationFile)}
               inputRef={secondaryInputRef}
@@ -307,7 +328,7 @@ export function ImportSection() {
               <Button
                 className="gap-2"
                 disabled={!crossTableFile || loading}
-                onClick={handleDiscoverClubs}
+                onClick={handleNextFromUpload}
               >
                 {loading ? (
                   <>
@@ -437,6 +458,11 @@ export function ImportSection() {
                 <CardDescription className="font-medium text-foreground">
                   {previewResult.tournamentName}
                 </CardDescription>
+                {previewResult.explicitAcademicColumns && (
+                  <p className="pt-2 text-xs text-primary">
+                    Datos académicos leídos desde columnas FACULTAD y CARRERA del Excel.
+                  </p>
+                )}
               </CardHeader>
             </Card>
 
@@ -495,7 +521,10 @@ export function ImportSection() {
             </div>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-              <Button variant="outline" onClick={() => setStep('map')}>
+              <Button
+                variant="outline"
+                onClick={() => setStep(explicitAcademicColumns ? 'upload' : 'map')}
+              >
                 Volver
               </Button>
               <Button className="gap-2" disabled={loading} onClick={handleConfirm}>
