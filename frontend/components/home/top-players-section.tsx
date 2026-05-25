@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { TrendingUp, TrendingDown, Minus, ChevronRight, Crown } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { SectionHeading } from '@/components/ui/section-heading'
+import { eloClass, rankNumberClass } from '@/lib/ranking-display'
 
 interface RankingPlayer {
   position: number
@@ -18,10 +19,19 @@ interface RankingPlayer {
   wins: number
   losses: number
   draws: number
-  gamesPlayed: number
 }
 
-const podiumOrder = [1, 0, 2] // 2nd, 1st, 3rd for visual layout
+const podiumOrder = [1, 0, 2]
+const delays = [0, 0.15, 0.3]
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+}
 
 export function TopPlayersSection() {
   const [topThree, setTopThree] = useState<RankingPlayer[]>([])
@@ -30,7 +40,7 @@ export function TopPlayersSection() {
 
   useEffect(() => {
     fetch(`${API_URL}/ranking`)
-      .then(res => {
+      .then((res) => {
         if (!res.ok) throw new Error('Error al cargar el ranking')
         return res.json()
       })
@@ -38,69 +48,34 @@ export function TopPlayersSection() {
         setTopThree(data.slice(0, 3))
         setLoading(false)
       })
-      .catch(err => {
+      .catch((err) => {
         setError(err.message)
         setLoading(false)
       })
   }, [])
 
-  const getRankStyle = (rank: number) => {
-    switch (rank) {
-      case 1: return 'from-amber-500/20 to-yellow-500/5 border-amber-500/30'
-      case 2: return 'from-slate-400/20 to-slate-500/5 border-slate-400/30'
-      case 3: return 'from-orange-600/20 to-orange-700/5 border-orange-600/30'
-      default: return 'from-secondary to-secondary/50 border-border'
-    }
-  }
-
-  const getRankBadgeStyle = (rank: number) => {
-    switch (rank) {
-      case 1: return 'bg-amber-500 text-amber-950'
-      case 2: return 'bg-slate-400 text-slate-900'
-      case 3: return 'bg-orange-600 text-orange-950'
-      default: return 'bg-secondary text-secondary-foreground'
-    }
-  }
-
   if (loading) {
     return (
-      <section className="py-24 px-4 flex items-center justify-center">
-        <p className="text-muted-foreground animate-pulse">Cargando ranking...</p>
+      <section className="flex items-center justify-center px-4 py-20">
+        <p className="text-sm text-chess-muted">Cargando ranking...</p>
       </section>
     )
   }
 
   if (error) {
     return (
-      <section className="py-24 px-4 flex items-center justify-center">
-        <p className="text-red-400">Error: {error}</p>
+      <section className="flex items-center justify-center px-4 py-20">
+        <p className="text-sm text-chess-red">Error: {error}</p>
       </section>
     )
   }
 
   return (
-    <section className="py-24 px-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
+    <section className="px-4 py-16 md:py-20">
+      <div className="mx-auto max-w-6xl">
+        <SectionHeading title="Top 3" subtitle="Salón de campeones" />
 
-      <div className="max-w-6xl mx-auto relative">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            Salón de Campeones
-          </h2>
-          <p className="text-3xl md:text-4xl font-bold text-foreground">
-            Mejores Jugadores
-          </p>
-        </motion.div>
-
-        {/* Podium Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-end mb-12">
+        <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-3 md:gap-5">
           {podiumOrder.map((playerIndex, visualIndex) => {
             const player = topThree[playerIndex]
             if (!player) return null
@@ -112,102 +87,93 @@ export function TopPlayersSection() {
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: visualIndex * 0.15 }}
+                transition={{ duration: 0.5, delay: delays[visualIndex] }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
                 className={cn(
                   'order-2 md:order-none',
-                  visualIndex === 0 && 'md:order-1',
-                  visualIndex === 1 && 'md:order-2',
-                  visualIndex === 2 && 'md:order-3',
-                  isFirst && 'order-1'
+                  visualIndex === 0 && 'md:order-1 md:mb-4',
+                  visualIndex === 1 && 'order-1 md:order-2',
+                  visualIndex === 2 && 'md:order-3 md:mb-4',
                 )}
               >
                 <Link href={`/players/${player.playerId}`}>
-                  <motion.div
-                    whileHover={{ y: -8 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
+                  <article
                     className={cn(
-                      'relative rounded-2xl border p-6 md:p-8 bg-gradient-to-b overflow-hidden group cursor-pointer',
-                      getRankStyle(player.position),
-                      isFirst && 'md:scale-110 md:z-10'
+                      'chess-card flex flex-col p-6 transition-colors md:p-7',
+                      isFirst && 'border-[rgba(212,160,23,0.35)] bg-[rgba(212,160,23,0.06)] md:-mt-4 md:pb-10',
                     )}
                   >
-                    {/* Crown for #1 */}
-                    {isFirst && (
-                      <div className="absolute -top-1 left-1/2 -translate-x-1/2">
-                        <Crown className="w-8 h-8 text-amber-500" />
-                      </div>
-                    )}
-
-                    {/* Rank Badge */}
-                    <div className={cn(
-                      'absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
-                      getRankBadgeStyle(player.position)
-                    )}>
-                      {player.position}
+                    <div className="mb-4 flex items-center justify-between">
+                      <span
+                        className={cn(
+                          'font-display text-2xl',
+                          rankNumberClass(player.position),
+                        )}
+                      >
+                        #{player.position}
+                      </span>
+                      {isFirst && (
+                        <span className="text-xs font-medium text-chess-gold">Campeón</span>
+                      )}
                     </div>
 
-                    {/* Avatar */}
-                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center text-2xl md:text-3xl font-bold text-muted-foreground">
-                      {player.fullName.charAt(0).toUpperCase()}
+                    <div
+                      className={cn(
+                        'mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 text-lg font-semibold',
+                        isFirst
+                          ? 'border-chess-gold/50 bg-chess-gold/10 text-chess-gold'
+                          : 'border-chess-green/40 bg-chess-green-dim text-chess-green',
+                      )}
+                    >
+                      {getInitials(player.fullName)}
                     </div>
 
-                    {/* Player Info */}
-                    <div className="text-center">
-                      <h3 className="text-lg md:text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
-                        {player.fullName}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {player.faculty}
-                      </p>
-                      <p className="text-xs text-muted-foreground/70 mb-4">
-                        {player.career}
-                      </p>
+                    <h3 className="text-center text-base font-semibold text-chess-cream">
+                      {player.fullName}
+                    </h3>
+                    <p className="mt-1 text-center text-xs text-chess-muted line-clamp-2">
+                      {player.faculty}
+                    </p>
 
-                      {/* ELO */}
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-2xl md:text-3xl font-bold text-gold-gradient">
-                          {player.eloRating}
-                        </span>
-                      </div>
-                    </div>
+                    <p
+                      className={cn(
+                        'mt-5 text-center font-display text-4xl tracking-[2px]',
+                        eloClass(player.position),
+                      )}
+                    >
+                      {player.eloRating}
+                    </p>
+                    <p className="text-center text-[10px] uppercase tracking-wider text-chess-muted">
+                      ELO
+                    </p>
 
-                    {/* Stats */}
-                    <div className="mt-6 pt-6 border-t border-border/50 grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <div className="text-lg font-bold text-emerald-400">{player.wins}</div>
-                        <div className="text-xs text-muted-foreground">Victorias</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-muted-foreground">{player.draws}</div>
-                        <div className="text-xs text-muted-foreground">Tablas</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-red-400">{player.losses}</div>
-                        <div className="text-xs text-muted-foreground">Derrotas</div>
-                      </div>
+                    <div className="mt-5 flex justify-center gap-4 border-t border-[var(--chess-border)] pt-4 text-xs">
+                      <span>
+                        <span className="font-semibold text-chess-green">{player.wins}</span> V
+                      </span>
+                      <span>
+                        <span className="font-semibold text-chess-muted">{player.draws}</span> T
+                      </span>
+                      <span>
+                        <span className="font-semibold text-chess-red">{player.losses}</span> D
+                      </span>
                     </div>
-                  </motion.div>
+                  </article>
                 </Link>
               </motion.div>
             )
           })}
         </div>
 
-        {/* View All Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-center"
-        >
-          <Button asChild variant="outline" className="group border-border/50">
-            <Link href="/ranking">
-              Ver Ranking Completo
-              <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-        </motion.div>
+        <div className="mt-10 text-center">
+          <Link
+            href="/ranking"
+            className="btn-chess-ghost inline-flex items-center gap-2 px-5 py-2.5 text-sm"
+          >
+            Ver ranking completo
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </section>
   )

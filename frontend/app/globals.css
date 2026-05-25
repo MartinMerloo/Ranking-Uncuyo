@@ -4,63 +4,54 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Dark theme as default - cinematic chess aesthetic */
-  --background: oklch(0.08 0.01 240);
-  --foreground: oklch(0.95 0.01 90);
-  --card: oklch(0.12 0.01 240);
-  --card-foreground: oklch(0.95 0.01 90);
-  --popover: oklch(0.1 0.01 240);
-  --popover-foreground: oklch(0.95 0.01 90);
-  
-  /* Gold accent colors */
-  --primary: oklch(0.78 0.15 85);
-  --primary-foreground: oklch(0.1 0.01 240);
-  --secondary: oklch(0.18 0.01 240);
-  --secondary-foreground: oklch(0.9 0.01 90);
-  --muted: oklch(0.2 0.01 240);
-  --muted-foreground: oklch(0.6 0.02 90);
-  --accent: oklch(0.7 0.12 85);
-  --accent-foreground: oklch(0.1 0.01 240);
-  
-  /* Status colors */
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: oklch(0.95 0.01 90);
-  
-  /* Borders and inputs */
-  --border: oklch(0.25 0.02 240);
-  --input: oklch(0.2 0.01 240);
-  --ring: oklch(0.78 0.15 85);
-  
-  /* Chart colors - warm gold spectrum */
-  --chart-1: oklch(0.78 0.15 85);
-  --chart-2: oklch(0.65 0.12 70);
-  --chart-3: oklch(0.55 0.1 60);
-  --chart-4: oklch(0.7 0.08 50);
-  --chart-5: oklch(0.6 0.06 40);
-  
-  --radius: 0.75rem;
-  
-  /* Sidebar */
-  --sidebar: oklch(0.1 0.01 240);
-  --sidebar-foreground: oklch(0.95 0.01 90);
-  --sidebar-primary: oklch(0.78 0.15 85);
-  --sidebar-primary-foreground: oklch(0.1 0.01 240);
-  --sidebar-accent: oklch(0.18 0.01 240);
-  --sidebar-accent-foreground: oklch(0.9 0.01 90);
-  --sidebar-border: oklch(0.25 0.02 240);
-  --sidebar-ring: oklch(0.78 0.15 85);
-  
-  /* Custom chess theme tokens */
-  --gold: oklch(0.78 0.15 85);
-  --gold-light: oklch(0.85 0.12 85);
-  --gold-dark: oklch(0.6 0.15 80);
-  --surface-glass: oklch(0.15 0.01 240 / 0.8);
+  --chess-navy: #111827;
+  --chess-navy-light: #1a2335;
+  --chess-navy-surface: #1e2d42;
+  --chess-navy-mid: #162030;
+  --chess-green: #6dbe45;
+  --chess-green-dim: rgba(109, 190, 69, 0.1);
+  --chess-gold: #d4a017;
+  --chess-cream: #f0ede8;
+  --chess-muted: #6b7f99;
+  --chess-border: rgba(109, 190, 69, 0.1);
+  --chess-border-mid: rgba(109, 190, 69, 0.22);
+  --chess-red: #e05c5c;
+
+  --background: var(--chess-navy);
+  --foreground: var(--chess-cream);
+  --card: var(--chess-navy-light);
+  --card-foreground: var(--chess-cream);
+  --popover: var(--chess-navy-light);
+  --popover-foreground: var(--chess-cream);
+  --primary: var(--chess-green);
+  --primary-foreground: #0a1a08;
+  --secondary: var(--chess-navy-mid);
+  --secondary-foreground: var(--chess-cream);
+  --muted: var(--chess-navy-mid);
+  --muted-foreground: var(--chess-muted);
+  --accent: var(--chess-navy-surface);
+  --accent-foreground: var(--chess-cream);
+  --destructive: var(--chess-red);
+  --destructive-foreground: var(--chess-cream);
+  --border: var(--chess-border);
+  --input: var(--chess-navy-mid);
+  --ring: var(--chess-green);
+  --radius: 4px;
+
+  --sidebar: var(--chess-navy-light);
+  --sidebar-foreground: var(--chess-cream);
+  --sidebar-primary: var(--chess-green);
+  --sidebar-primary-foreground: #0a1a08;
+  --sidebar-accent: var(--chess-navy-mid);
+  --sidebar-accent-foreground: var(--chess-cream);
+  --sidebar-border: var(--chess-border);
+  --sidebar-ring: var(--chess-green);
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
-  --font-serif: 'Playfair Display', 'Georgia', serif;
+  --font-sans: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+  --font-display: var(--font-bebas), 'Bebas Neue', sans-serif;
+  --font-mono: ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -80,27 +71,16 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-gold: var(--gold);
-  --color-gold-light: var(--gold-light);
-  --color-gold-dark: var(--gold-dark);
-  --color-surface-glass: var(--surface-glass);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --color-chess-navy: var(--chess-navy);
+  --color-chess-navy-light: var(--chess-navy-light);
+  --color-chess-green: var(--chess-green);
+  --color-chess-gold: var(--chess-gold);
+  --color-chess-cream: var(--chess-cream);
+  --color-chess-muted: var(--chess-muted);
 }
 
 @layer base {
@@ -108,54 +88,103 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
   }
   html {
     scroll-behavior: smooth;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
 }
 
-::-webkit-scrollbar-track {
-  background: oklch(0.1 0.01 240);
-}
-
-::-webkit-scrollbar-thumb {
-  background: oklch(0.3 0.02 240);
+.chess-card {
+  background: var(--chess-navy-light);
+  border: 1px solid var(--chess-border);
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.4 0.02 240);
+.btn-chess-primary {
+  background: var(--chess-green);
+  color: #0a1a08;
+  border-radius: 2px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+.btn-chess-primary:hover {
+  opacity: 0.9;
 }
 
-/* Glass morphism utility */
+.btn-chess-ghost {
+  border: 1px solid rgba(240, 237, 232, 0.18);
+  border-radius: 2px;
+  color: var(--chess-cream);
+  background: transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.btn-chess-ghost:hover {
+  border-color: var(--chess-border-mid);
+  background: var(--chess-green-dim);
+}
+
+.pill-active {
+  background: rgba(109, 190, 69, 0.12);
+  border: 1px solid rgba(109, 190, 69, 0.3);
+  color: var(--chess-green);
+}
+
+.pill-inactive {
+  border: 1px solid var(--chess-border);
+  color: var(--chess-muted);
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+}
+
+.hero-dot-grid {
+  background-image: radial-gradient(rgba(109, 190, 69, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.rank-gold {
+  color: var(--chess-gold);
+}
+.rank-silver {
+  color: #9ca3af;
+}
+.rank-bronze {
+  color: #b45309;
+}
+
 .glass {
-  background: oklch(0.12 0.01 240 / 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(0.25 0.02 240 / 0.5);
+  background: var(--chess-navy-light);
+  border: 1px solid var(--chess-border);
+  border-radius: 4px;
 }
 
-/* Gold text gradient */
-.text-gold-gradient {
-  background: linear-gradient(135deg, oklch(0.85 0.12 85), oklch(0.7 0.15 80));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+::-webkit-scrollbar {
+  width: 6px;
 }
-
-/* Chess pattern background */
-.chess-pattern {
-  background-image: 
-    linear-gradient(45deg, oklch(0.1 0.01 240) 25%, transparent 25%),
-    linear-gradient(-45deg, oklch(0.1 0.01 240) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, oklch(0.1 0.01 240) 75%),
-    linear-gradient(-45deg, transparent 75%, oklch(0.1 0.01 240) 75%);
-  background-size: 60px 60px;
-  background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+::-webkit-scrollbar-track {
+  background: var(--chess-navy);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--chess-navy-surface);
+  border-radius: 3px;
 }
