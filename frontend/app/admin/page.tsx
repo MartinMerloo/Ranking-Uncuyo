@@ -17,12 +17,6 @@ export default function AdminPage() {
       <Navbar />
 
       <section className="relative px-4 pb-24 pt-32">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="absolute inset-0 chess-pattern opacity-5"
-        />
         <div className="relative mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -1,106 +1,165 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-const INITIAL_BOARD: (string | null)[][] = [
-  ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
-  ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
-  ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖'],
+const SQUARE_SIZE = 60
+
+const PIECE_IMAGES: Record<string, string> = {
+  'K': 'wK.svg', 'Q': 'wQ.svg', 'R': 'wR.svg',
+  'B': 'wB.svg', 'N': 'wN.svg', 'P': 'wP.svg',
+  'k': 'bK.svg', 'q': 'bQ.svg', 'r': 'bR.svg',
+  'b': 'bB.svg', 'n': 'bN.svg', 'p': 'bP.svg',
+}
+const BASE_URL = 'https://lichess1.org/assets/piece/cburnett/'
+
+const STARTING_POSITION = [
+  ['r','n','b','q','k','b','n','r'],
+  ['p','p','p','p','p','p','p','p'],
+  ['','','','','','','',''],
+  ['','','','','','','',''],
+  ['','','','','','','',''],
+  ['','','','','','','',''],
+  ['P','P','P','P','P','P','P','P'],
+  ['R','N','B','Q','K','B','N','R'],
 ]
 
-const MOVE_SEQUENCE: [number, number, number, number][] = [
-  [6, 4, 4, 4], // e2-e4
-  [1, 4, 3, 4], // e7-e5
-  [7, 6, 5, 5], // Nf3
-  [0, 1, 2, 2], // Nc6
-  [7, 5, 3, 1], // Bb5
-  [1, 0, 2, 0], // a6
-  [7, 3, 4, 0], // Qa4
-  [0, 6, 2, 5], // Nf6
+const MOVE_SEQUENCE: Array<{ from: string; to: string }> = [
+  { from: 'e2', to: 'e4' },
+  { from: 'e7', to: 'e5' },
+  { from: 'g1', to: 'f3' },
+  { from: 'b8', to: 'c6' },
+  { from: 'f1', to: 'c4' },
+  { from: 'f8', to: 'c5' },
 ]
+
+function squareToCoords(sq: string): [number, number] {
+  const col = sq.charCodeAt(0) - 97
+  const row = 8 - parseInt(sq[1])
+  return [row, col]
+}
 
 export function ChessBoard() {
-  const [step, setStep] = useState(0)
+  const [board, setBoard] = useState(() =>
+    STARTING_POSITION.map(row => [...row])
+  )
+  const [highlighted, setHighlighted] = useState<string[]>([])
+  const moveIndexRef = useRef(0)
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setStep((s) => (s + 1) % MOVE_SEQUENCE.length)
-    }, 2500)
-    return () => clearInterval(timer)
+    const interval = setInterval(() => {
+      const current = moveIndexRef.current
+
+      if (current >= MOVE_SEQUENCE.length) {
+        setBoard(STARTING_POSITION.map(row => [...row]))
+        setHighlighted([])
+        moveIndexRef.current = 0
+        return
+      }
+
+      const move = MOVE_SEQUENCE[current]
+      const [fromR, fromC] = squareToCoords(move.from)
+      const [toR, toC] = squareToCoords(move.to)
+
+      setBoard(b => {
+        const next = b.map(row => [...row])
+        next[toR][toC] = next[fromR][fromC]
+        next[fromR][fromC] = ''
+        return next
+      })
+      setHighlighted([move.from, move.to])
+      moveIndexRef.current = current + 1
+    }, 2000)
+
+    return () => clearInterval(interval)
   }, [])
 
-  const [fromRow, fromCol, toRow, toCol] = MOVE_SEQUENCE[step]
-  const flat = INITIAL_BOARD.flat()
-
   return (
-    <div className="relative w-full aspect-square max-w-md mx-auto select-none">
-      <div className="absolute inset-0 grid grid-cols-8 rounded-xl overflow-hidden border border-white/10 shadow-2xl">
-        {flat.map((piece, i) => {
-          const row = Math.floor(i / 8)
-          const col = i % 8
-          const isLight = (row + col) % 2 === 0
-          const isHighlighted =
-            (row === fromRow && col === fromCol) ||
-            (row === toRow && col === toCol)
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      maxWidth: 480,
+      aspectRatio: '1',
+      borderRadius: 4,
+      overflow: 'hidden',
+      border: '2px solid rgba(109,190,69,0.20)',
+      boxShadow: '0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(109,190,69,0.06)',
+    }}>
+      <svg
+        viewBox={`0 0 ${8 * SQUARE_SIZE} ${8 * SQUARE_SIZE}`}
+        style={{ width: '100%', height: '100%', display: 'block' }}
+      >
+        {board.map((row, ri) =>
+          row.map((piece, ci) => {
+            const isLight = (ri + ci) % 2 === 0
+            const file = String.fromCharCode(97 + ci)
+            const rank = 8 - ri
+            const sqName = `${file}${rank}`
+            const isHighlit = highlighted.includes(sqName)
 
-          return (
-            <div
-              key={i}
-              className="flex items-center justify-center"
-              style={{
-                background: isHighlighted
-                  ? 'rgba(109, 190, 69, 0.45)'
-                  : isLight
-                  ? '#eeeed2'
-                  : '#769656',
-                transition: 'background 0.4s ease',
-              }}
-            >
-              {piece !== null && (
-                <span
-                  className="text-lg leading-none"
-                  style={{
-                    color: piece <= '♙' ? '#ffffff' : '#1a1a1a',
-                    textShadow:
-                      piece <= '♙'
-                        ? '0 1px 3px rgba(0,0,0,0.9)'
-                        : '0 1px 2px rgba(255,255,255,0.3)',
-                  }}
-                >
-                  {piece}
-                </span>
-              )}
-            </div>
-          )
-        })}
-      </div>
+            return (
+              <g key={`${ri}-${ci}`}>
+                <rect
+                  x={ci * SQUARE_SIZE}
+                  y={ri * SQUARE_SIZE}
+                  width={SQUARE_SIZE}
+                  height={SQUARE_SIZE}
+                  fill={isLight ? '#b8c9a3' : '#6a8f5a'}
+                />
+                {isHighlit && (
+                  <rect
+                    x={ci * SQUARE_SIZE}
+                    y={ri * SQUARE_SIZE}
+                    width={SQUARE_SIZE}
+                    height={SQUARE_SIZE}
+                    fill="rgba(255, 220, 0, 0.45)"
+                  />
+                )}
+                {piece && PIECE_IMAGES[piece] && (
+                  <image
+                    href={`${BASE_URL}${PIECE_IMAGES[piece]}`}
+                    x={ci * SQUARE_SIZE + 3}
+                    y={ri * SQUARE_SIZE + 3}
+                    width={SQUARE_SIZE - 6}
+                    height={SQUARE_SIZE - 6}
+                  />
+                )}
+                {ci === 0 && (
+                  <text
+                    x={2}
+                    y={ri * SQUARE_SIZE + 13}
+                    fontSize={10}
+                    fill={isLight ? '#6a8f5a' : '#b8c9a3'}
+                    fontFamily="monospace"
+                    fontWeight="600"
+                  >
+                    {8 - ri}
+                  </text>
+                )}
+                {ri === 7 && (
+                  <text
+                    x={ci * SQUARE_SIZE + SQUARE_SIZE - 11}
+                    y={ri * SQUARE_SIZE + SQUARE_SIZE - 3}
+                    fontSize={10}
+                    fill={isLight ? '#6a8f5a' : '#b8c9a3'}
+                    fontFamily="monospace"
+                    fontWeight="600"
+                  >
+                    {file}
+                  </text>
+                )}
+              </g>
+            )
+          })
+        )}
+      </svg>
 
-      {/* Left fade */}
-      <div
-        className="absolute inset-y-0 left-0 w-1/5 pointer-events-none z-10"
-        style={{
-          background: 'linear-gradient(to right, var(--background) 0%, transparent 100%)',
-        }}
-      />
-      {/* Top fade */}
-      <div
-        className="absolute inset-x-0 top-0 h-1/5 pointer-events-none z-10"
-        style={{
-          background: 'linear-gradient(to bottom, var(--background) 0%, transparent 100%)',
-        }}
-      />
-      {/* Bottom fade */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-1/5 pointer-events-none z-10"
-        style={{
-          background: 'linear-gradient(to top, var(--background) 0%, transparent 100%)',
-        }}
-      />
+      {/* Left fade only — blend with hero background */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(to right, #0d1117 0%, transparent 15%)',
+        pointerEvents: 'none',
+      }} />
     </div>
   )
 }
