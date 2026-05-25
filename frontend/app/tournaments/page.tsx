@@ -6,17 +6,10 @@ import { Calendar, Users, Layers, Trophy, Clock, Filter } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/ui/section-heading'
 import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const statusLabels: Record<string, string> = {
   all: 'Todos los Estados',
@@ -42,27 +35,34 @@ export default function TournamentsPage() {
           type: tournament.type,
           participants: tournament.participants || 0,
           winner: tournament.winner || null,
-          status: tournament.status || 'completed',
+          status: tournament.status || 'completed'
         }))
+
         setTournaments(formattedTournaments)
       })
       .catch((error) => console.error('Error fetching tournaments:', error))
   }, [])
 
   const filteredTournaments = tournaments.filter((tournament) => {
-    const matchesStatus = statusFilter === 'all' || tournament.status === statusFilter
-    const matchesType = typeFilter === 'all' || tournament.type === typeFilter
+    const matchesStatus =
+      statusFilter === 'all' || tournament.status === statusFilter
+
+    const matchesType =
+      typeFilter === 'all' || tournament.type === typeFilter
+
     return matchesStatus && matchesType
   })
 
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'ongoing':
-        return 'border-chess-green/30 text-chess-green bg-chess-green-dim'
+        return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
       case 'upcoming':
-        return 'border-chess-gold/35 text-chess-gold bg-[rgba(212,160,23,0.08)]'
+        return 'bg-primary/20 text-primary border-primary/30'
+      case 'completed':
+        return 'bg-muted text-muted-foreground border-border'
       default:
-        return 'border-[var(--chess-border)] text-chess-muted'
+        return ''
     }
   }
 
@@ -70,50 +70,74 @@ export default function TournamentsPage() {
     switch (type) {
       case 'BLITZ':
       case 'RAPID':
-        return <Clock className="h-4 w-4" />
+        return <Clock className="w-4 h-4" />
       default:
-        return <Trophy className="h-4 w-4" />
+        return <Trophy className="w-4 h-4" />
     }
   }
 
   const tournamentTypes = ['BLITZ', 'RAPID', 'CLASSICAL']
 
   return (
-    <main className="min-h-screen bg-chess-navy pt-[72px]">
+    <main className="min-h-screen">
       <Navbar />
 
-      <section className="border-b border-[var(--chess-border)] px-4 py-12">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            title="Torneos"
-            subtitle="Calendario y resultados de la Liga UNCUYO"
-            center
-          />
+      {/* Hero Section */}
+      <section className="pt-32 pb-16 px-4 relative">
+        <div className="absolute inset-0 chess-pattern opacity-5" />
+
+        <div className="max-w-6xl mx-auto relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+              <span className="text-gold-gradient">Torneos</span>
+            </h1>
+
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Explorá todos los torneos de la Liga de Ajedrez UNCuyo.
+              Desde intensas batallas blitz hasta campeonatos clásicos.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      <section className="px-4 py-10 pb-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row">
+      {/* Tournaments Section */}
+      <section className="pb-24 px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-4 mb-8"
+          >
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-10 w-full border-[var(--chess-border)] bg-chess-navy-light sm:w-[200px]">
-                <Filter className="mr-2 h-4 w-4 text-chess-muted" />
-                <SelectValue placeholder="Estado" />
+              <SelectTrigger className="w-full sm:w-[180px] bg-card border-border">
+                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Todos los Estados" />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="upcoming">Próximos</SelectItem>
-                <SelectItem value="ongoing">En curso</SelectItem>
+                <SelectItem value="ongoing">En Curso</SelectItem>
                 <SelectItem value="completed">Finalizados</SelectItem>
               </SelectContent>
             </Select>
+
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-10 w-full border-[var(--chess-border)] bg-chess-navy-light sm:w-[200px]">
-                <Trophy className="mr-2 h-4 w-4 text-chess-muted" />
-                <SelectValue placeholder="Tipo" />
+              <SelectTrigger className="w-full sm:w-[180px] bg-card border-border">
+                <Trophy className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Todos los Tipos" />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
+
                 {tournamentTypes.map((type) => (
                   <SelectItem key={type} value={type}>
                     {type}
@@ -121,86 +145,114 @@ export default function TournamentsPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredTournaments.map((tournament, index) => {
-              const isUpcoming = tournament.status === 'upcoming'
-              return (
-                <motion.div
-                  key={tournament.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.08 }}
-                  whileHover={{ y: -3 }}
-                >
-                  <Link href={`/tournaments/${tournament.id}`}>
-                    <article
-                      className={cn(
-                        'chess-card group flex h-full flex-col p-6 transition-colors hover:border-[var(--chess-border-mid)]',
-                        isUpcoming &&
-                          'border-[rgba(212,160,23,0.35)] bg-gradient-to-br from-[rgba(212,160,23,0.08)] to-transparent',
-                      )}
-                    >
-                      <div className="mb-4 flex items-start justify-between gap-2">
-                        <Badge
-                          variant="outline"
-                          className={cn('font-normal', getStatusStyle(tournament.status))}
-                        >
-                          {statusLabels[tournament.status] || tournament.status}
-                        </Badge>
-                        <span className="flex items-center gap-1 text-xs text-chess-muted">
-                          {getTypeIcon(tournament.type)}
+          {/* Tournaments Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTournaments.map((tournament, index) => (
+              <motion.div
+                key={tournament.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <Link href={`/tournaments/${tournament.id}`}>
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                    className="glass rounded-2xl p-6 h-full group cursor-pointer hover:border-primary/30 transition-colors relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-32 h-32 chess-pattern opacity-5 -rotate-12 translate-x-8 -translate-y-8" />
+
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'capitalize',
+                          getStatusStyle(tournament.status)
+                        )}
+                      >
+                        {statusLabels[tournament.status] ||
+                          tournament.status}
+                      </Badge>
+
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        {getTypeIcon(tournament.type)}
+
+                        <span className="text-sm">
                           {tournament.type}
                         </span>
                       </div>
+                    </div>
 
-                      <h3 className="font-display text-xl tracking-[1px] text-chess-cream group-hover:text-chess-green">
-                        {tournament.name}
-                      </h3>
+                    {/* Title */}
+                    <h3 className="text-xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors">
+                      {tournament.name}
+                    </h3>
 
-                      <ul className="mt-4 flex-1 space-y-2 text-sm text-chess-muted">
-                        <li className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 shrink-0 text-chess-green" />
-                          {new Date(tournament.date).toLocaleDateString('es-AR', {
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Layers className="h-4 w-4 shrink-0 text-chess-green" />
-                          {tournament.rounds} rondas
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <Users className="h-4 w-4 shrink-0 text-chess-green" />
-                          {tournament.participants} participantes
-                        </li>
-                      </ul>
+                    {/* Details */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="w-4 h-4" />
 
-                      {tournament.winner && (
-                        <div className="mt-4 flex items-center gap-2 border-t border-[var(--chess-border)] pt-4 text-sm">
-                          <Trophy className="h-4 w-4 text-chess-gold" />
-                          <span className="text-chess-muted">Campeón:</span>
-                          <span className="font-medium text-chess-cream">{tournament.winner}</span>
+                        <span>
+                          {new Date(tournament.date).toLocaleDateString(
+                            'es-AR',
+                            {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric',
+                            }
+                          )}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Layers className="w-4 h-4" />
+
+                        <span>{tournament.rounds} rondas</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="w-4 h-4" />
+
+                        <span>{tournament.participants} participantes</span>
+                      </div>
+                    </div>
+
+                    {/* Winner */}
+                    {tournament.winner && (
+                      <div className="mt-4 pt-4 border-t border-border/50">
+                        <div className="flex items-center gap-2">
+                          <Trophy className="w-4 h-4 text-amber-500" />
+
+                          <span className="text-sm text-muted-foreground">
+                            Ganador:
+                          </span>
+
+                          <span className="text-sm font-medium text-foreground">
+                            {tournament.winner}
+                          </span>
                         </div>
-                      )}
-
-                      <span className="btn-chess-ghost mt-5 inline-flex w-fit px-3 py-1.5 text-xs">
-                        Ver resultados
-                      </span>
-                    </article>
-                  </Link>
-                </motion.div>
-              )
-            })}
+                      </div>
+                    )}
+                  </motion.div>
+                </Link>
+              </motion.div>
+            ))}
           </div>
 
           {filteredTournaments.length === 0 && (
-            <p className="py-16 text-center text-sm text-chess-muted">
-              No se encontraron torneos con los criterios seleccionados.
-            </p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <p className="text-muted-foreground">
+                No se encontraron torneos con los criterios seleccionados.
+              </p>
+            </motion.div>
           )}
         </div>
       </section>

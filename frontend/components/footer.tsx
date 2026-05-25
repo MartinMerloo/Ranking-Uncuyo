@@ -1,10 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-
-const NAV_LOGO =
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSH5QBZ_gYpMKb2dBacQ274mSNdnx67Bw5bIQ&s'
+import { motion } from 'framer-motion'
+import { Crown, Github, Twitter, Mail } from 'lucide-react'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -17,35 +15,42 @@ export function Footer() {
   ]
 
   return (
-    <footer className="border-t border-[var(--chess-border)]" style={{ background: 'var(--chess-navy-light)' }}>
-      <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
-        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
-          <div className="max-w-sm">
-            <Link href="/" className="mb-4 inline-flex items-center gap-3">
-              <Image
-                src={NAV_LOGO}
-                alt="UNCuyo"
-                width={36}
-                height={36}
-                className="h-9 w-9 rounded object-cover"
-              />
-              <span className="font-display text-xl tracking-[2px] text-chess-cream">
-                RANKING UNCUYO
-              </span>
+    <footer className="border-t border-border/50 bg-card/50">
+      <div className="max-w-7xl mx-auto px-4 py-16 md:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          {/* Brand */}
+          <div className="md:col-span-2">
+            <Link href="/" className="flex items-center gap-3 mb-4">
+              <motion.div
+                whileHover={{ rotate: 15 }}
+                className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center"
+              >
+                <Crown className="w-5 h-5 text-primary" />
+              </motion.div>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold tracking-tight text-foreground">
+                  Ranking
+                </span>
+                <span className="text-xs text-primary font-medium -mt-1">
+                  UNCuyo
+                </span>
+              </div>
             </Link>
-            <p className="text-sm leading-relaxed text-chess-muted">
-              Sistema oficial de clasificación de ajedrez de la Universidad Nacional de Cuyo.
+            <p className="text-muted-foreground text-sm max-w-md leading-relaxed">
+              Sistema oficial de clasificación de ajedrez de la Universidad Nacional de Cuyo. 
+              Seguí partidas competitivas, explorá torneos y descubrí a los mejores jugadores.
             </p>
           </div>
 
+          {/* Quick Links */}
           <div>
-            <h4 className="mb-3 text-sm font-semibold text-chess-cream">Navegación</h4>
-            <ul className="space-y-2">
+            <h4 className="text-sm font-semibold text-foreground mb-4">Navegación</h4>
+            <ul className="space-y-3">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-chess-muted transition-colors hover:text-chess-green"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {item.label}
                   </Link>
@@ -53,11 +58,47 @@ export function Footer() {
               ))}
             </ul>
           </div>
+
+          {/* Contact */}
+          <div>
+            <h4 className="text-sm font-semibold text-foreground mb-4">Conectar</h4>
+            <div className="flex gap-3">
+              <motion.a
+                whileHover={{ y: -2 }}
+                href="#"
+                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
+                aria-label="GitHub"
+              >
+                <Github className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                whileHover={{ y: -2 }}
+                href="#"
+                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                whileHover={{ y: -2 }}
+                href="#"
+                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
+                aria-label="Email"
+              >
+                <Mail className="w-4 h-4" />
+              </motion.a>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-[var(--chess-border)] pt-8 text-xs text-chess-muted md:flex-row md:justify-between">
-          <p>© {currentYear} Ranking UNCUYO. Todos los derechos reservados.</p>
-          <p className="text-chess-green/80">Liga de Ajedrez Universitaria</p>
+        {/* Bottom Bar */}
+        <div className="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-muted-foreground">
+            &copy; {currentYear} Ranking UNCuyo. Todos los derechos reservados.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Club de Ajedrez - Universidad Nacional de Cuyo
+          </p>
         </div>
       </div>
     </footer>

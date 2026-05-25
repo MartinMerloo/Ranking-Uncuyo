@@ -2,31 +2,14 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Search, Filter } from 'lucide-react'
+import { Search, Filter, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
-import { SectionHeading } from '@/components/ui/section-heading'
 import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { eloClass, rankNumberClass } from '@/lib/ranking-display'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export default function PlayersPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -38,6 +21,7 @@ export default function PlayersPage() {
     fetch(`${API_URL}/ranking`)
       .then((response) => response.json())
       .then((data) => {
+        console.log(data)
         const formattedPlayers = data.map((player: any) => ({
           id: player.playerId,
           rank: player.position,
@@ -47,10 +31,17 @@ export default function PlayersPage() {
           wins: player.wins,
           draws: player.draws,
           losses: player.losses,
+          trend: 'stable',
+          eloChange: 0,
         }))
 
         setPlayers(formattedPlayers)
-        setFaculties([...new Set(formattedPlayers.map((p: any) => p.faculty))] as string[])
+
+        const uniqueFaculties = [
+          ...new Set(formattedPlayers.map((p: any) => p.faculty)),
+        ] as string[]
+
+        setFaculties(uniqueFaculties)
       })
       .catch((error) => console.error('Error fetching ranking:', error))
   }, [])
@@ -61,39 +52,98 @@ export default function PlayersPage() {
     return matchesSearch && matchesFaculty
   })
 
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp className="w-4 h-4 text-emerald-400" />
+      case 'down':
+        return <TrendingDown className="w-4 h-4 text-red-400" />
+      default:
+        return <Minus className="w-4 h-4 text-muted-foreground" />
+    }
+  }
+
+  const getRankStyle = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'from-amber-500/20 to-yellow-500/5 border-amber-500/30'
+      case 2:
+        return 'from-slate-400/20 to-slate-500/5 border-slate-400/30'
+      case 3:
+        return 'from-orange-600/20 to-orange-700/5 border-orange-600/30'
+      default:
+        return 'from-secondary to-secondary/50 border-border/50'
+    }
+  }
+
+  const getRankBadgeStyle = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-amber-500 text-amber-950'
+      case 2:
+        return 'bg-slate-400 text-slate-900'
+      case 3:
+        return 'bg-orange-600 text-orange-950'
+      default:
+        return 'bg-secondary text-secondary-foreground'
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-chess-navy pt-[72px]">
+    <main className="min-h-screen">
       <Navbar />
 
-      <section className="border-b border-[var(--chess-border)] px-4 py-12">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeading
-            title="Jugadores"
-            subtitle="Directorio de competidores de la liga universitaria"
-            center
-          />
+      {/* Hero Section */}
+      <section className="pt-32 pb-16 px-4 relative">
+        <div className="absolute inset-0 chess-pattern opacity-5" />
+        <div className="max-w-6xl mx-auto relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+              <span className="text-gold-gradient">Jugadores</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Descubrí a todos los ajedrecistas que compiten en la Liga de Ajedrez UNCuyo.
+              Explorá perfiles, estadísticas y seguí su camino hacia la cima.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      <section className="px-4 py-10 pb-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row">
+      {/* Players Section */}
+      <section className="pb-24 px-4">
+        <div className="max-w-6xl mx-auto">
+
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-col sm:flex-row gap-4 mb-8"
+          >
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-chess-muted" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar jugadores..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 border-[var(--chess-border)] bg-chess-navy-light pl-9"
+                className="pl-10 bg-card border-border"
               />
             </div>
+
             <Select value={facultyFilter} onValueChange={setFacultyFilter}>
-              <SelectTrigger className="h-10 w-full border-[var(--chess-border)] bg-chess-navy-light sm:w-[220px]">
-                <Filter className="mr-2 h-4 w-4 text-chess-muted" />
-                <SelectValue placeholder="Todas las facultades" />
+              <SelectTrigger className="w-full sm:w-[200px] bg-card border-border">
+                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Todas las Facultades" />
               </SelectTrigger>
+
               <SelectContent>
-                <SelectItem value="all">Todas las facultades</SelectItem>
+                <SelectItem value="all">Todas las Facultades</SelectItem>
+
                 {faculties.map((faculty) => (
                   <SelectItem key={faculty} value={faculty}>
                     {faculty}
@@ -101,87 +151,117 @@ export default function PlayersPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {/* Players Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredPlayers.map((player, index) => (
               <motion.div
                 key={player.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: Math.min(index * 0.04, 0.35) }}
-                whileHover={{ y: -3 }}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.05 }}
               >
                 <Link href={`/players/${player.id}`}>
-                  <article
+                  <motion.div
+                    whileHover={{ y: -8 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
                     className={cn(
-                      'chess-card group flex h-full flex-col p-5 transition-colors hover:border-[var(--chess-border-mid)]',
-                      player.rank === 1 && 'border-[rgba(212,160,23,0.35)]',
+                      'relative rounded-2xl border p-6 bg-gradient-to-b overflow-hidden group cursor-pointer',
+                      getRankStyle(player.rank)
                     )}
                   >
-                    <div className="mb-4 flex items-start justify-between">
-                      <span
-                        className={cn(
-                          'font-display text-xl',
-                          rankNumberClass(player.rank),
-                        )}
-                      >
-                        #{player.rank}
-                      </span>
-                    </div>
-
+                    {/* Rank Badge */}
                     <div
                       className={cn(
-                        'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 text-base font-semibold',
-                        player.rank === 1
-                          ? 'border-chess-gold/50 bg-chess-gold/10 text-chess-gold'
-                          : 'border-chess-green/40 bg-chess-green-dim text-chess-green',
+                        'absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                        getRankBadgeStyle(player.rank)
                       )}
                     >
-                      {getInitials(player.name)}
+                      {player.rank}
                     </div>
 
-                    <h3 className="text-center text-base font-semibold text-chess-cream group-hover:text-chess-green">
-                      {player.name}
-                    </h3>
-                    <span
-                      className="mx-auto mt-2 block w-fit rounded-sm px-2 py-0.5 text-center text-xs text-chess-muted"
-                      style={{ background: 'rgba(109, 190, 69, 0.07)' }}
-                    >
-                      {player.faculty}
-                    </span>
-
-                    <p
-                      className={cn(
-                        'mt-4 text-center font-display text-3xl tracking-[2px]',
-                        eloClass(player.rank),
-                      )}
-                    >
-                      {player.elo}
-                    </p>
-
-                    <div className="mt-auto flex justify-center gap-4 border-t border-[var(--chess-border)] pt-4 text-xs">
-                      <span>
-                        <span className="font-semibold text-chess-green">{player.wins}</span> V
-                      </span>
-                      <span>
-                        <span className="font-semibold text-chess-muted">{player.draws}</span> T
-                      </span>
-                      <span>
-                        <span className="font-semibold text-chess-red">{player.losses}</span> D
-                      </span>
+                    {/* Avatar */}
+                    <div className="w-16 h-16 rounded-full bg-secondary mx-auto mb-4 flex items-center justify-center text-xl font-bold text-muted-foreground">
+                      {player.name.charAt(0)}
                     </div>
-                  </article>
+
+                    {/* Player Info */}
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
+                        {player.name}
+                      </h3>
+
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {player.faculty}
+                      </p>
+
+                      {/* ELO */}
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl font-bold text-gold-gradient">
+                          {player.elo}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          {getTrendIcon(player.trend)}
+
+                          <span
+                            className={cn(
+                              'text-xs font-medium',
+                              player.trend === 'up' && 'text-emerald-400',
+                              player.trend === 'down' && 'text-red-400',
+                              player.trend === 'stable' && 'text-muted-foreground'
+                            )}
+                          >
+                            {player.eloChange > 0 ? '+' : ''}
+                            {player.eloChange}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="mt-4 pt-4 border-t border-border/50 grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div className="text-sm font-bold text-emerald-400">
+                          {player.wins}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground">V</div>
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-bold text-muted-foreground">
+                          {player.draws}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground">T</div>
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-bold text-red-400">
+                          {player.losses}
+                        </div>
+
+                        <div className="text-xs text-muted-foreground">D</div>
+                      </div>
+                    </div>
+                  </motion.div>
                 </Link>
               </motion.div>
             ))}
           </div>
 
           {filteredPlayers.length === 0 && (
-            <p className="py-16 text-center text-sm text-chess-muted">
-              No se encontraron jugadores con los criterios seleccionados.
-            </p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <p className="text-muted-foreground">
+                No se encontraron jugadores con los criterios seleccionados.
+              </p>
+            </motion.div>
           )}
         </div>
       </section>

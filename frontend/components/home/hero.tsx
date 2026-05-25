@@ -1,93 +1,106 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
-import { ChessBoard } from '@/components/chess/chess-board'
-import { PulsingDot } from '@/components/ui/pulsing-dot'
-
-const NAV_LOGO =
-  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSH5QBZ_gYpMKb2dBacQ274mSNdnx67Bw5bIQ&s'
+import { ChevronRight, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function Hero() {
   return (
-    <section className="hero-dot-grid relative border-b border-[var(--chess-border)] pt-[72px]">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-24">
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-sm border border-[var(--chess-border-mid)] bg-[var(--chess-green-dim)] px-3 py-1.5 text-sm text-chess-green"
-          >
-            <PulsingDot />
-            Temporada 2026 Activa
-          </motion.div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 chess-pattern opacity-5" />
+      
+      {/* Gradient Orbs */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+      
+      {/* Chess Piece Silhouettes */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.05, scale: 1 }}
+        transition={{ duration: 1.5, ease: 'easeOut' }}
+        className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] hidden lg:block"
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full text-foreground">
+          <path
+            fill="currentColor"
+            d="M50 5 L55 15 L60 15 L60 20 L58 25 L62 35 L70 40 L70 50 L65 55 L68 80 L75 85 L75 95 L25 95 L25 85 L32 80 L35 55 L30 50 L30 40 L38 35 L42 25 L40 20 L40 15 L45 15 Z"
+          />
+        </svg>
+      </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.25 }}
-            className="font-display text-5xl leading-none tracking-[3px] text-chess-cream sm:text-6xl lg:text-7xl"
-          >
-            RANKING
-            <br />
-            <span className="text-chess-green">UNCUYO</span>
-          </motion.h1>
+      {/* Content */}
+      <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8"
+        >
+          <Sparkles className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-primary">Temporada 2026 Activa</span>
+        </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.4 }}
-            className="mt-6 max-w-lg text-base leading-relaxed text-chess-muted"
-          >
-            Sistema oficial de clasificación ELO de la Liga de Ajedrez Universitaria. Torneos,
-            estadísticas y perfiles de todos los competidores de la UNCuyo.
-          </motion.p>
+        {/* Main Heading */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6"
+        >
+          <span className="text-gold-gradient">Ranking UnCuyo</span>
+        </motion.h1>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.6 }}
-            className="mt-10 flex flex-wrap gap-3"
-          >
-            <Link href="/ranking" className="btn-chess-primary inline-flex items-center gap-2 px-6 py-3 text-sm">
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed"
+        >
+          Sistema oficial de clasificación de ajedrez universitario de la Universidad Nacional de Cuyo
+        </motion.p>
+
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+        >
+          <Button asChild size="lg" className="group px-8">
+            <Link href="/ranking">
               Ver Ranking
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link href="/tournaments" className="btn-chess-ghost inline-flex items-center px-6 py-3 text-sm">
+          </Button>
+          <Button asChild variant="outline" size="lg" className="px-8 border-border/50 hover:bg-secondary">
+            <Link href="/tournaments">
               Explorar Torneos
             </Link>
-          </motion.div>
+          </Button>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.75 }}
-            className="mt-12 flex items-center gap-3 border-t border-[var(--chess-border)] pt-8"
-          >
-            <Image
-              src={NAV_LOGO}
-              alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded object-cover"
-            />
-            <div>
-              <p className="text-sm font-medium text-chess-cream">Universidad Nacional de Cuyo</p>
-              <p className="text-xs text-chess-muted">Club de Ajedrez · Liga Universitaria</p>
-            </div>
-          </motion.div>
-        </div>
-
+        {/* Scroll Indicator */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex justify-center lg:justify-end"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1 }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
         >
-          <ChessBoard />
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex items-start justify-center p-2"
+          >
+            <motion.div
+              animate={{ height: ['20%', '40%', '20%'] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-1 bg-primary rounded-full"
+            />
+          </motion.div>
         </motion.div>
       </div>
     </section>
