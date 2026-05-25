@@ -21,7 +21,11 @@ public class EloCalculationService {
     }
 
     public int getInitialRating() {
-        return eloProperties.getInitialRating();
+        return eloProperties.initialRatingForNewPlayers();
+    }
+
+    public int applyRatingFloor(int rating) {
+        return Math.max(rating, eloProperties.minimumRatingFloor());
     }
 
     public double expectedScore(int playerRating, int opponentRating) {
@@ -31,8 +35,9 @@ public class EloCalculationService {
 
     public int calculateNewRating(int currentRating, int opponentRating, double actualScore) {
         double expected = expectedScore(currentRating, opponentRating);
-        double change = eloProperties.getKFactor() * (actualScore - expected);
-        return (int) Math.round(currentRating + change);
+        double change = eloProperties.kFactorForCalculation() * (actualScore - expected);
+        int newRating = (int) Math.round(currentRating + change);
+        return applyRatingFloor(newRating);
     }
 
     public double scoreForWhite(MatchResult result) {
@@ -77,5 +82,13 @@ public class EloCalculationService {
                 black.setDraws(black.getDraws() + 1);
             }
         }
+    }
+
+    /**
+     * Records a bye win: +1 win and +1 bye win, no match, no ELO change, no games played.
+     */
+    public void applyByeWin(Player player) {
+        player.setWins(player.getWins() + 1);
+        player.setByeWins(player.getByeWins() + 1);
     }
 }

@@ -11,6 +11,7 @@ public class RankingEntryResponse {
     private String career;
     private int eloRating;
     private int wins;
+    private int byeWins;
     private int losses;
     private int draws;
     private int gamesPlayed;
@@ -24,6 +25,7 @@ public class RankingEntryResponse {
         entry.setCareer(player.getCareer());
         entry.setEloRating(player.getEloRating());
         entry.setWins(player.getWins());
+        entry.setByeWins(player.getByeWins());
         entry.setLosses(player.getLosses());
         entry.setDraws(player.getDraws());
         entry.setGamesPlayed(player.getGamesPlayed());
@@ -84,6 +86,14 @@ public class RankingEntryResponse {
 
     public void setWins(int wins) {
         this.wins = wins;
+    }
+
+    public int getByeWins() {
+        return byeWins;
+    }
+
+    public void setByeWins(int byeWins) {
+        this.byeWins = byeWins;
     }
 
     public int getLosses() {

@@ -30,6 +30,10 @@ public class Player {
     @Column(nullable = false)
     private int wins;
 
+    /** Wins from byes only (also included in {@link #wins} for display totals). */
+    @Column(nullable = false)
+    private int byeWins;
+
     @Column(nullable = false)
     private int losses;
 
@@ -88,6 +92,14 @@ public class Player {
 
     public void setWins(int wins) {
         this.wins = wins;
+    }
+
+    public int getByeWins() {
+        return byeWins;
+    }
+
+    public void setByeWins(int byeWins) {
+        this.byeWins = byeWins;
     }
 
     public int getLosses() {

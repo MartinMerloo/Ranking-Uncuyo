@@ -105,11 +105,19 @@ public class CrossTableExcelParser {
                 }
 
                 List<ParsedRoundResult> roundResults = new ArrayList<>();
+                List<Integer> byeRounds = new ArrayList<>();
                 for (int roundIndex = 0; roundIndex < roundColumns.size(); roundIndex++) {
                     final int round = roundIndex + 1;
                     int columnIndex = roundColumns.get(roundIndex);
                     String raw = readCell(row.getCell(columnIndex));
                     if (raw == null || raw.isBlank()) {
+                        continue;
+                    }
+                    if (isBye(raw)) {
+                        byeRounds.add(round);
+                        continue;
+                    }
+                    if (isNoShow(raw)) {
                         continue;
                     }
                     parseRoundResult(raw).ifPresent(result ->
@@ -123,7 +131,8 @@ public class CrossTableExcelParser {
                         clubCiudad,
                         faculty,
                         career,
-                        roundResults));
+                        roundResults,
+                        byeRounds));
             }
 
             if (players.isEmpty()) {
@@ -233,9 +242,17 @@ public class CrossTableExcelParser {
         return columns;
     }
 
+    private boolean isBye(String raw) {
+        return "-1".equals(raw.trim());
+    }
+
+    private boolean isNoShow(String raw) {
+        return "0".equals(raw.trim());
+    }
+
     private Optional<ParsedRoundResultData> parseRoundResult(String raw) {
         String trimmed = raw.trim();
-        if ("-1".equals(trimmed) || "0".equals(trimmed)) {
+        if (isBye(trimmed) || isNoShow(trimmed)) {
             return Optional.empty();
         }
 
@@ -288,14 +305,14 @@ public class CrossTableExcelParser {
     private int readElo(Cell cell) {
         String value = readCell(cell);
         if (value == null || value.isBlank()) {
-            return eloProperties.getInitialRating();
+            return eloProperties.initialRatingForNewPlayers();
         }
         try {
             double numeric = Double.parseDouble(value.replace(",", "."));
             int elo = (int) Math.round(numeric);
-            return elo <= 0 ? eloProperties.getInitialRating() : elo;
+            return elo <= 0 ? eloProperties.initialRatingForNewPlayers() : elo;
         } catch (NumberFormatException ex) {
-            return eloProperties.getInitialRating();
+            return eloProperties.initialRatingForNewPlayers();
         }
     }
 
@@ -360,7 +377,8 @@ public class CrossTableExcelParser {
             String clubCiudad,
             String faculty,
             String career,
-            List<ParsedRoundResult> roundResults) {
+            List<ParsedRoundResult> roundResults,
+            List<Integer> byeRounds) {
     }
 
     public record ParsedRoundResult(int round, ParsedRoundResultData data) {

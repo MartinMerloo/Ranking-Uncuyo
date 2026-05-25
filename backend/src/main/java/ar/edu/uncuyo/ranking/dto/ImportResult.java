@@ -10,6 +10,7 @@ public class ImportResult {
     private int playersCreated;
     private int playersSkipped;
     private int matchesCreated;
+    private int byeWinsApplied;
     private int rounds;
     private boolean preview;
     private boolean mappingsComplete;
@@ -56,6 +57,14 @@ public class ImportResult {
 
     public void setMatchesCreated(int matchesCreated) {
         this.matchesCreated = matchesCreated;
+    }
+
+    public int getByeWinsApplied() {
+        return byeWinsApplied;
+    }
+
+    public void setByeWinsApplied(int byeWinsApplied) {
+        this.byeWinsApplied = byeWinsApplied;
     }
 
     public int getRounds() {

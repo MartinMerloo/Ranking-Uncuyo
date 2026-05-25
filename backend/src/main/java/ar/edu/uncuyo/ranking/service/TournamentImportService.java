@@ -40,6 +40,7 @@ public class TournamentImportService {
     private final PlayerService playerService;
     private final TournamentService tournamentService;
     private final MatchService matchService;
+    private final EloCalculationService eloCalculationService;
     private final ObjectMapper objectMapper;
 
     public TournamentImportService(
@@ -48,12 +49,14 @@ public class TournamentImportService {
             PlayerService playerService,
             TournamentService tournamentService,
             MatchService matchService,
+            EloCalculationService eloCalculationService,
             ObjectMapper objectMapper) {
         this.crossTableExcelParser = crossTableExcelParser;
         this.importPlayerRepository = importPlayerRepository;
         this.playerService = playerService;
         this.tournamentService = tournamentService;
         this.matchService = matchService;
+        this.eloCalculationService = eloCalculationService;
         this.objectMapper = objectMapper;
     }
 
@@ -88,6 +91,7 @@ public class TournamentImportService {
         result.setPlayersCreated(plan.playersCreated());
         result.setPlayersSkipped(plan.playersSkipped());
         result.setMatchesCreated(plan.matchesToCreate());
+        result.setByeWinsApplied(plan.byeWinsToApply());
         result.setPlayersList(plan.playerSummaries());
 
         if (dryRun) {
@@ -97,9 +101,11 @@ public class TournamentImportService {
         Map<Integer, Player> seedToPlayer = persistPlayers(plan);
         Long tournamentId = createTournament(plan);
         int matchesCreated = createMatches(plan, seedToPlayer, tournamentId);
+        int byeWinsApplied = applyByeWins(plan, seedToPlayer);
 
         result.setTournamentId(tournamentId);
         result.setMatchesCreated(matchesCreated);
+        result.setByeWinsApplied(byeWinsApplied);
         return result;
     }
 
@@ -210,6 +216,7 @@ public class TournamentImportService {
         }
 
         int matchesToCreate = countMatches(parsed, resolvedPlayers);
+        int byeWinsToApply = countByeWins(parsed);
 
         return new ImportPlan(
                 parsed.tournamentName(),
@@ -218,7 +225,16 @@ public class TournamentImportService {
                 resolvedPlayers,
                 playersCreated,
                 playersSkipped,
-                matchesToCreate);
+                matchesToCreate,
+                byeWinsToApply);
+    }
+
+    private int countByeWins(ParsedCrossTable parsed) {
+        int count = 0;
+        for (ParsedPlayer player : parsed.players()) {
+            count += player.byeRounds().size();
+        }
+        return count;
     }
 
     private int countMatches(ParsedCrossTable parsed, List<ResolvedPlayer> resolvedPlayers) {
@@ -332,6 +348,27 @@ public class TournamentImportService {
         return created;
     }
 
+    private int applyByeWins(ImportPlan plan, Map<Integer, Player> seedToPlayer) {
+        int applied = 0;
+        for (ResolvedPlayer resolved : plan.resolvedPlayers()) {
+            ParsedPlayer parsedPlayer = resolved.parsedPlayer();
+            if (parsedPlayer.byeRounds().isEmpty()) {
+                continue;
+            }
+            Player player = seedToPlayer.get(parsedPlayer.seed());
+            if (player == null) {
+                continue;
+            }
+            int byeCount = parsedPlayer.byeRounds().size();
+            for (int i = 0; i < byeCount; i++) {
+                eloCalculationService.applyByeWin(player);
+            }
+            applied += byeCount;
+            importPlayerRepository.save(player);
+        }
+        return applied;
+    }
+
     private record ResolvedPlayer(
             ParsedPlayer parsedPlayer,
             Player existingPlayer,
@@ -348,7 +385,8 @@ public class TournamentImportService {
             List<ResolvedPlayer> resolvedPlayers,
             int playersCreated,
             int playersSkipped,
-            int matchesToCreate) {
+            int matchesToCreate,
+            int byeWinsToApply) {
 
         List<ImportedPlayerSummary> playerSummaries() {
             return resolvedPlayers.stream()

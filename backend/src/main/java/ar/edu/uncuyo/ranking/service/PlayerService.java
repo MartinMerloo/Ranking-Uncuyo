@@ -41,6 +41,7 @@ public class PlayerService {
         player.setCareer(request.getCareer().trim());
         player.setEloRating(eloCalculationService.getInitialRating());
         player.setWins(0);
+        player.setByeWins(0);
         player.setLosses(0);
         player.setDraws(0);
         player.setGamesPlayed(0);

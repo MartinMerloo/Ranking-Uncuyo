@@ -10,6 +10,7 @@ public class PlayerResponse {
     private String career;
     private int eloRating;
     private int wins;
+    private int byeWins;
     private int losses;
     private int draws;
     private int gamesPlayed;
@@ -22,6 +23,7 @@ public class PlayerResponse {
         response.setCareer(player.getCareer());
         response.setEloRating(player.getEloRating());
         response.setWins(player.getWins());
+        response.setByeWins(player.getByeWins());
         response.setLosses(player.getLosses());
         response.setDraws(player.getDraws());
         response.setGamesPlayed(player.getGamesPlayed());
@@ -74,6 +76,14 @@ public class PlayerResponse {
 
     public void setWins(int wins) {
         this.wins = wins;
+    }
+
+    public int getByeWins() {
+        return byeWins;
+    }
+
+    public void setByeWins(int byeWins) {
+        this.byeWins = byeWins;
     }
 
     public int getLosses() {
