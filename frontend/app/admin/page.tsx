@@ -1,13 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Settings } from 'lucide-react'
+import { Settings, Upload } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { AdminLogoutButton } from '@/components/admin/admin-logout-button'
 import { PlayersSection } from '@/components/admin/players-section'
 import { TournamentsSection } from '@/components/admin/tournaments-section'
 import { MatchesSection } from '@/components/admin/matches-section'
+import { ImportSection } from '@/components/admin/import-section'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function AdminPage() {
@@ -48,7 +49,7 @@ export default function AdminPage() {
           </motion.div>
 
           <Tabs defaultValue="players" className="w-full">
-            <TabsList className="mb-8 grid h-auto w-full grid-cols-3 gap-1 bg-secondary/50 p-1 sm:w-auto sm:inline-flex">
+            <TabsList className="mb-8 grid h-auto w-full grid-cols-2 gap-1 bg-secondary/50 p-1 sm:grid-cols-4 sm:w-auto sm:inline-flex">
               <TabsTrigger value="players" className="px-4 py-2.5">
                 Jugadores
               </TabsTrigger>
@@ -57,6 +58,10 @@ export default function AdminPage() {
               </TabsTrigger>
               <TabsTrigger value="matches" className="px-4 py-2.5">
                 Partidas
+              </TabsTrigger>
+              <TabsTrigger value="import" className="gap-2 px-4 py-2.5">
+                <Upload className="h-4 w-4" />
+                Importar
               </TabsTrigger>
             </TabsList>
 
@@ -68,6 +73,9 @@ export default function AdminPage() {
             </TabsContent>
             <TabsContent value="matches">
               <MatchesSection />
+            </TabsContent>
+            <TabsContent value="import">
+              <ImportSection />
             </TabsContent>
           </Tabs>
         </div>
