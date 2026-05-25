@@ -88,13 +88,14 @@ public class CrossTableExcelParser {
 
                 List<ParsedRoundResult> roundResults = new ArrayList<>();
                 for (int roundIndex = 0; roundIndex < roundColumns.size(); roundIndex++) {
+                    final int round = roundIndex + 1;
                     int columnIndex = roundColumns.get(roundIndex);
                     String raw = readCell(row.getCell(columnIndex));
                     if (raw == null || raw.isBlank()) {
                         continue;
                     }
                     parseRoundResult(raw).ifPresent(result ->
-                            roundResults.add(new ParsedRoundResult(roundIndex + 1, result)));
+                            roundResults.add(new ParsedRoundResult(round, result)));
                 }
 
                 players.add(new ParsedPlayer(
