@@ -2,8 +2,10 @@ package ar.edu.uncuyo.ranking.service;
 
 import ar.edu.uncuyo.ranking.dto.PlayerRequest;
 import ar.edu.uncuyo.ranking.dto.PlayerResponse;
+import ar.edu.uncuyo.ranking.exception.BadRequestException;
 import ar.edu.uncuyo.ranking.exception.ResourceNotFoundException;
 import ar.edu.uncuyo.ranking.model.Player;
+import ar.edu.uncuyo.ranking.repository.MatchRepository;
 import ar.edu.uncuyo.ranking.repository.PlayerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +16,15 @@ import java.util.List;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final MatchRepository matchRepository;
     private final EloCalculationService eloCalculationService;
 
-    public PlayerService(PlayerRepository playerRepository, EloCalculationService eloCalculationService) {
+    public PlayerService(
+            PlayerRepository playerRepository,
+            MatchRepository matchRepository,
+            EloCalculationService eloCalculationService) {
         this.playerRepository = playerRepository;
+        this.matchRepository = matchRepository;
         this.eloCalculationService = eloCalculationService;
     }
 
@@ -46,6 +53,24 @@ public class PlayerService {
         player.setDraws(0);
         player.setGamesPlayed(0);
         return PlayerResponse.from(playerRepository.save(player));
+    }
+
+    @Transactional
+    public PlayerResponse update(Long id, PlayerRequest request) {
+        Player player = getPlayerOrThrow(id);
+        player.setFullName(request.getFullName().trim());
+        player.setFaculty(request.getFaculty().trim());
+        player.setCareer(request.getCareer().trim());
+        return PlayerResponse.from(playerRepository.save(player));
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Player player = getPlayerOrThrow(id);
+        if (matchRepository.existsByWhitePlayerIdOrBlackPlayerId(id, id)) {
+            throw new BadRequestException("No se puede eliminar un jugador con partidas registradas");
+        }
+        playerRepository.delete(player);
     }
 
     public Player getPlayerOrThrow(Long id) {

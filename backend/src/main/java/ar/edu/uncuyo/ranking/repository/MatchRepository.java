@@ -12,4 +12,6 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<Match> findByTournamentIdOrderByRoundAscIdAsc(Long tournamentId);
 
     List<Match> findByWhitePlayerIdOrBlackPlayerIdOrderByDateDesc(Long whitePlayerId, Long blackPlayerId);
+
+    boolean existsByWhitePlayerIdOrBlackPlayerId(Long whitePlayerId, Long blackPlayerId);
 }
