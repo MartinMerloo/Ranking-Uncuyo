@@ -4,13 +4,14 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Crown, TrendingUp, Swords, Target, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { API_URL } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 
 export function FeaturedPlayerSection() {
   const [featuredPlayer, setFeaturedPlayer] = useState<any>(null)
 
   useEffect(() => {
-    fetch('http://localhost:8080/ranking')
+    fetch(`${API_URL}/ranking`)
       .then((response) => response.json())
       .then((data) => {
         if (data.length > 0) {

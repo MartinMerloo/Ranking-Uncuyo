@@ -1,4 +1,4 @@
-export const API_URL = 'http://localhost:8080'
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
 export type TournamentType = 'BLITZ' | 'RAPID' | 'CLASSICAL'
 export type MatchResultUi = 'WHITE_WINS' | 'BLACK_WINS' | 'DRAW'

@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Minus, ChevronRight, Crown } from 'lucide-react'
+import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-
-const API_URL = 'http://localhost:8080'
 
 interface RankingPlayer {
   position: number

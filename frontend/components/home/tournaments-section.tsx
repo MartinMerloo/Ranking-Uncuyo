@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Calendar, Layers, ChevronRight, Trophy, Clock } from 'lucide-react'
+import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-
-const API_URL = 'http://localhost:8080'
 
 interface Tournament {
   id: number

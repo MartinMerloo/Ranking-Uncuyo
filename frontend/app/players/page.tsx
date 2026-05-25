@@ -6,6 +6,7 @@ import { Search, Filter, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
+import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -17,7 +18,7 @@ export default function PlayersPage() {
   const [faculties, setFaculties] = useState<string[]>([])
 
   useEffect(() => {
-    fetch('http://localhost:8080/ranking')
+    fetch(`${API_URL}/ranking`)
       .then((response) => response.json())
       .then((data) => {
         console.log(data)

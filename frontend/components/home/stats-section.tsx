@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Users, Trophy, Swords, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { API_URL } from '@/lib/api'
 
 export function StatsSection() {
   const [stats, setStats] = useState({
@@ -14,8 +15,8 @@ export function StatsSection() {
 
   useEffect(() => {
     Promise.all([
-      fetch('http://localhost:8080/ranking').then((res) => res.json()),
-      fetch('http://localhost:8080/tournaments').then((res) => res.json()),
+      fetch(`${API_URL}/ranking`).then((res) => res.json()),
+      fetch(`${API_URL}/tournaments`).then((res) => res.json()),
     ])
       .then(([playersData, tournamentsData]) => {
         const totalPlayers = playersData.length

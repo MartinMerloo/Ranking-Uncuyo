@@ -7,6 +7,7 @@ import { use, useEffect, useState } from 'react'
 import { ArrowLeft, Calendar, Users, Layers, Trophy, Clock, MapPin } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
+import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +23,7 @@ export default function TournamentDetailPage({ params }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`http://localhost:8080/tournaments/${id}`)
+    fetch(`${API_URL}/tournaments/${id}`)
       .then((response) => response.json())
       .then((data) => {
         setTournament(data)

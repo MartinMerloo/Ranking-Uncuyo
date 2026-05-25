@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { TrendingUp, TrendingDown, Minus, Search, Filter } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { API_URL } from '@/lib/api'
 import { faculties } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -15,7 +16,7 @@ export function RankingTable() {
   const [players, setPlayers] = useState<any[]>([])
 
   useEffect(() => {
-    fetch('http://localhost:8080/ranking')
+    fetch(`${API_URL}/ranking`)
       .then((response) => response.json())
       .then((data) => {
         const formattedPlayers = data.map((player: any) => ({

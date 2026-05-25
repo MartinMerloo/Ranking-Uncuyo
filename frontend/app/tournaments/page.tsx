@@ -6,6 +6,7 @@ import { Calendar, Users, Layers, Trophy, Clock, Filter } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
+import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -23,7 +24,7 @@ export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<any[]>([])
 
   useEffect(() => {
-    fetch('http://localhost:8080/tournaments')
+    fetch(`${API_URL}/tournaments`)
       .then((response) => response.json())
       .then((data) => {
         const formattedTournaments = data.map((tournament: any) => ({

@@ -14,6 +14,7 @@ import {
 
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
+import { API_URL } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -41,7 +42,7 @@ export default function PlayerProfilePage({ params }: Props) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('http://localhost:8080/ranking')
+    fetch(`${API_URL}/ranking`)
       .then((response) => response.json())
       .then((data) => {
         const formattedPlayers = data.map((p: any) => ({
