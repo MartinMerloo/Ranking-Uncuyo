@@ -1,4 +1,4 @@
-/** Facultades de la Universidad Nacional de Cuyo */
+/** Facultades de la Universidad Nacional de Cuyo (libreria) */
 export const uncuyoFaculties = [
   'Facultad de Ciencias Políticas y Sociales',
   'Facultad de Artes y Diseño',
