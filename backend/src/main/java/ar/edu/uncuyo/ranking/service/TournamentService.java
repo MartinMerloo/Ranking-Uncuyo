@@ -5,7 +5,9 @@ import ar.edu.uncuyo.ranking.dto.TournamentResponse;
 import ar.edu.uncuyo.ranking.dto.TournamentStandingEntry;
 import ar.edu.uncuyo.ranking.exception.ResourceNotFoundException;
 import ar.edu.uncuyo.ranking.model.Match;
+import ar.edu.uncuyo.ranking.model.Player;
 import ar.edu.uncuyo.ranking.model.Tournament;
+import ar.edu.uncuyo.ranking.repository.MatchRepository;
 import ar.edu.uncuyo.ranking.repository.TournamentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,14 +17,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class TournamentService {
 
     private final TournamentRepository tournamentRepository;
+    private final MatchRepository matchRepository;
 
-    public TournamentService(TournamentRepository tournamentRepository) {
+    public TournamentService(TournamentRepository tournamentRepository, MatchRepository matchRepository) {
         this.tournamentRepository = tournamentRepository;
+        this.matchRepository = matchRepository;
     }
 
     @Transactional(readOnly = true)
@@ -75,7 +80,17 @@ public class TournamentService {
             }
         }
 
-        return stats.entrySet().stream()
+        // Include players who appear in match records but weren't accumulated above.
+        // Note: players registered in the tournament with truly zero match records
+        // (not even as white or black player) cannot be detected without a dedicated
+        // registration table and will not appear in standings.
+        List<Player> whitePlayers = matchRepository.findDistinctWhitePlayersByTournamentId(tournamentId);
+        List<Player> blackPlayers = matchRepository.findDistinctBlackPlayersByTournamentId(tournamentId);
+        Map<Long, Player> allMatchPlayers = new LinkedHashMap<>();
+        whitePlayers.forEach(p -> allMatchPlayers.put(p.getId(), p));
+        blackPlayers.forEach(p -> allMatchPlayers.put(p.getId(), p));
+
+        Stream<TournamentStandingEntry> presentStream = stats.entrySet().stream()
                 .map(e -> {
                     Long pid = e.getKey();
                     int[] s = e.getValue();
@@ -86,10 +101,18 @@ public class TournamentService {
                             pid, names.get(pid),
                             points, wins, draws, losses,
                             byes, gamesPlayed);
-                })
+                });
+
+        Stream<TournamentStandingEntry> absentStream = allMatchPlayers.entrySet().stream()
+                .filter(e -> !stats.containsKey(e.getKey()))
+                .map(e -> new TournamentStandingEntry(
+                        e.getKey(), e.getValue().getFullName(),
+                        0, 0, 0, 0, 0, 0));
+
+        return Stream.concat(presentStream, absentStream)
                 .sorted(Comparator
                         .comparingDouble(TournamentStandingEntry::getPoints).reversed()
-                        .thenComparingInt(TournamentStandingEntry::getWins).reversed())
+                        .thenComparing(Comparator.comparingInt(TournamentStandingEntry::getWins).reversed()))
                 .collect(Collectors.toList());
     }
 

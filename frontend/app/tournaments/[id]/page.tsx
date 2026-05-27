@@ -82,133 +82,167 @@ function ResultDisplay({ match }: { match: ApiMatch }) {
   )
 }
 
-// ── PodiumCard ────────────────────────────────────────────────────────────────
+// ── PodiumPlatform ────────────────────────────────────────────────────────────
 
-const PIECE_CONFIG = {
-  1: {
-    piece: 'wK.svg',
-    label: 'Campeón',
-    badgeBg: '#d4a017', badgeText: '#000',
-    avatarBorder: 'rgba(212,160,23,0.5)', avatarBg: 'rgba(212,160,23,0.12)', avatarColor: '#d4a017',
-    pointsColor: '#d4a017',
-    cardBorder: 'rgba(212,160,23,0.25)',
-  },
-  2: {
-    piece: 'wR.svg',
-    label: '2° Lugar',
-    badgeBg: '#8a9bb0', badgeText: '#000',
-    avatarBorder: 'rgba(138,155,176,0.4)', avatarBg: 'rgba(138,155,176,0.10)', avatarColor: '#8a9bb0',
-    pointsColor: '#c0ccd8',
-    cardBorder: 'rgba(138,155,176,0.18)',
-  },
-  3: {
-    piece: 'wB.svg',
-    label: '3° Lugar',
-    badgeBg: '#8b5e3c', badgeText: '#fff',
-    avatarBorder: 'rgba(139,94,60,0.4)', avatarBg: 'rgba(139,94,60,0.10)', avatarColor: '#c4845a',
-    pointsColor: '#c4845a',
-    cardBorder: 'rgba(139,94,60,0.18)',
-  },
-} as const
+function PodiumPlatform() {
+  return (
+    <svg
+      viewBox="0 0 600 160"
+      style={{ width: '100%', maxWidth: 600, display: 'block', margin: '0 auto' }}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Step 2 — left, height 80 */}
+      <rect x="20" y="80" width="175" height="80" rx="6"
+        fill="#2a3a52" stroke="rgba(138,155,176,0.3)" strokeWidth="1.5" />
+      <text x="107" y="128" textAnchor="middle"
+        fontFamily="var(--font-display), sans-serif"
+        fontSize="36" fontWeight="700" fill="rgba(138,155,176,0.5)">
+        2
+      </text>
 
-function PodiumCard({ player, rank }: { player: ApiStandingEntry; rank: 1 | 2 | 3 }) {
-  const cfg = PIECE_CONFIG[rank]
+      {/* Step 1 — center, height 120 (tallest) */}
+      <rect x="210" y="40" width="180" height="120" rx="6"
+        fill="#2a3a52" stroke="rgba(212,160,23,0.45)" strokeWidth="1.5" />
+      {/* Gold glow */}
+      <rect x="210" y="40" width="180" height="120" rx="6"
+        fill="url(#goldGlow)" opacity="0.15" />
+      <text x="300" y="115" textAnchor="middle"
+        fontFamily="var(--font-display), sans-serif"
+        fontSize="40" fontWeight="700" fill="rgba(212,160,23,0.5)">
+        1
+      </text>
+
+      {/* Step 3 — right, height 60 */}
+      <rect x="405" y="100" width="175" height="60" rx="6"
+        fill="#2a3a52" stroke="rgba(139,94,60,0.3)" strokeWidth="1.5" />
+      <text x="492" y="138" textAnchor="middle"
+        fontFamily="var(--font-display), sans-serif"
+        fontSize="32" fontWeight="700" fill="rgba(139,94,60,0.5)">
+        3
+      </text>
+
+      <defs>
+        <linearGradient id="goldGlow" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#d4a017" />
+          <stop offset="100%" stopColor="transparent" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
+// ── PodiumPlayerCard ──────────────────────────────────────────────────────────
+
+function PodiumPlayerCard({
+  player,
+  rank,
+}: {
+  player: ApiStandingEntry
+  rank: 1 | 2 | 3
+}) {
+  const cfg = {
+    1: {
+      border: 'rgba(212,160,23,0.35)',
+      avatarBorder: 'rgba(212,160,23,0.5)',
+      avatarBg: 'rgba(212,160,23,0.12)',
+      avatarColor: '#d4a017',
+      pointsColor: '#d4a017',
+      delay: 0.2,
+    },
+    2: {
+      border: 'rgba(138,155,176,0.25)',
+      avatarBorder: 'rgba(138,155,176,0.4)',
+      avatarBg: 'rgba(138,155,176,0.10)',
+      avatarColor: '#8a9bb0',
+      pointsColor: '#c0ccd8',
+      delay: 0.1,
+    },
+    3: {
+      border: 'rgba(139,94,60,0.25)',
+      avatarBorder: 'rgba(139,94,60,0.4)',
+      avatarBg: 'rgba(139,94,60,0.10)',
+      avatarColor: '#c4845a',
+      pointsColor: '#c4845a',
+      delay: 0.3,
+    },
+  }[rank]
+
+  const inits = player.playerName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(w => w[0])
+    .join('')
+    .toUpperCase()
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: rank === 1 ? 0.1 : rank === 2 ? 0 : 0.2 }}
-      whileHover={{ y: -6, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.5, delay: cfg.delay }}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       style={{
-        position: 'relative',
         background: 'var(--surface)',
-        border: `1px solid ${cfg.cardBorder}`,
-        borderRadius: 12,
-        padding: '2rem 1.5rem 1.5rem',
+        border: `1px solid ${cfg.border}`,
+        borderRadius: 10,
+        padding: '1rem',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        overflow: 'hidden',
         cursor: 'default',
+        position: 'relative',
       }}
     >
-      {/* Chess piece — decorative background */}
-      <div style={{
-        position: 'absolute', bottom: -16, right: -12,
-        width: 120, height: 120, opacity: 0.18, pointerEvents: 'none',
-        filter: rank === 1 ? 'sepia(1) saturate(2) hue-rotate(5deg)' : 'none',
-      }}>
-        <img src={`${LICHESS}${cfg.piece}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-      </div>
-
-      {/* Rank badge */}
-      <div style={{
-        position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)',
-        width: 28, height: 28, borderRadius: '50%',
-        background: cfg.badgeBg, color: cfg.badgeText,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 13, fontWeight: 700,
-        fontFamily: 'var(--font-display), sans-serif',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.3)', zIndex: 1,
-      }}>{rank}</div>
-
-      {/* Label */}
-      <div style={{
-        fontSize: 10, color: 'var(--text-secondary)',
-        letterSpacing: '2px', textTransform: 'uppercase',
-        marginBottom: '1rem', marginTop: 4,
-      }}>{cfg.label}</div>
-
       {/* Avatar */}
       <div style={{
-        width: 56, height: 56, borderRadius: '50%',
-        background: cfg.avatarBg, border: `2px solid ${cfg.avatarBorder}`,
+        width: 44, height: 44, borderRadius: '50%',
+        background: cfg.avatarBg,
+        border: `2px solid ${cfg.avatarBorder}`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'var(--font-display), sans-serif',
-        fontSize: 20, color: cfg.avatarColor,
-        marginBottom: '0.75rem', flexShrink: 0,
-      }}>{initials(player.playerName)}</div>
+        fontSize: 16, color: cfg.avatarColor,
+        marginBottom: '0.5rem',
+      }}>{inits}</div>
 
       {/* Name */}
       <div style={{
-        fontWeight: 600, fontSize: 14, color: 'var(--text-primary)',
-        lineHeight: 1.3, marginBottom: '0.5rem', zIndex: 1,
-        maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        fontWeight: 600, fontSize: 13,
+        color: 'var(--text-primary)',
+        lineHeight: 1.3, marginBottom: '0.4rem',
+        maxWidth: '100%',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>{player.playerName}</div>
 
       {/* Points */}
       <div style={{
         fontFamily: 'var(--font-display), sans-serif',
-        fontSize: 42, color: cfg.pointsColor, lineHeight: 1,
-        marginBottom: 4, zIndex: 1,
+        fontSize: 30, color: cfg.pointsColor,
+        lineHeight: 1, marginBottom: 2,
       }}>
-        {fmtPts(player.points)}
-        <span style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 4 }}>pts</span>
+        {player.points % 1 === 0 ? player.points : player.points.toFixed(1)}
+        <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 3 }}>pts</span>
       </div>
 
-      {/* Divider */}
-      <div style={{ width: '100%', height: 1, background: 'rgba(109,190,69,0.08)', margin: '0.75rem 0', zIndex: 1 }} />
-
-      {/* W / T / D + optional BYE */}
-      <div style={{ display: 'flex', gap: 16, fontSize: 13, zIndex: 1 }}>
+      {/* W/T/D */}
+      <div style={{ display: 'flex', gap: 10, fontSize: 12, marginTop: 6 }}>
         <span>
-          <strong style={{ color: 'var(--primary)' }}>{player.wins}</strong>
-          <span style={{ color: 'var(--text-secondary)', marginLeft: 3, fontSize: 11 }}>V</span>
+          <strong style={{ color: 'var(--accent)' }}>{player.wins}</strong>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 10, marginLeft: 2 }}>V</span>
         </span>
         <span>
           <strong style={{ color: 'var(--text-secondary)' }}>{player.draws}</strong>
-          <span style={{ color: 'var(--text-secondary)', marginLeft: 3, fontSize: 11 }}>T</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 10, marginLeft: 2 }}>T</span>
         </span>
         <span>
           <strong style={{ color: '#e05c5c' }}>{player.losses}</strong>
-          <span style={{ color: 'var(--text-secondary)', marginLeft: 3, fontSize: 11 }}>D</span>
+          <span style={{ color: 'var(--text-secondary)', fontSize: 10, marginLeft: 2 }}>D</span>
         </span>
         {player.byes > 0 && (
           <span>
             <strong style={{ color: 'var(--text-secondary)' }}>{player.byes}</strong>
-            <span style={{ color: 'var(--text-secondary)', marginLeft: 3, fontSize: 11 }}>BYE</span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: 10, marginLeft: 2 }}>BYE</span>
           </span>
         )}
       </div>
@@ -342,25 +376,39 @@ function FinalTableTab({ standings }: { standings: ApiStandingEntry[] }) {
                   </span>
                 </td>
 
-                <td style={{ padding: '12px 10px', textAlign: 'center' }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--primary)' }}>{player.wins}</span>
-                </td>
-                <td style={{ padding: '12px 10px', textAlign: 'center' }}>
-                  <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{player.draws}</span>
-                </td>
-                <td style={{ padding: '12px 10px', textAlign: 'center' }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#e05c5c' }}>{player.losses}</span>
-                </td>
-
-                {hasByes && (
-                  <td style={{ padding: '12px 10px', textAlign: 'center' }}>
-                    <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{player.byes}</span>
+                {player.gamesPlayed === 0 ? (
+                  <td colSpan={hasByes ? 5 : 4} style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <span style={{
+                      fontSize: 11, color: 'var(--text-secondary)',
+                      background: 'rgba(138,155,176,0.1)',
+                      border: '1px solid rgba(138,155,176,0.2)',
+                      borderRadius: 4, padding: '2px 8px',
+                      letterSpacing: '1px', textTransform: 'uppercase',
+                    }}>Ausente</span>
                   </td>
-                )}
+                ) : (
+                  <>
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--primary)' }}>{player.wins}</span>
+                    </td>
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{player.draws}</span>
+                    </td>
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: '#e05c5c' }}>{player.losses}</span>
+                    </td>
 
-                <td style={{ padding: '12px 10px', textAlign: 'center' }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{player.gamesPlayed}</span>
-                </td>
+                    {hasByes && (
+                      <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                        <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{player.byes}</span>
+                      </td>
+                    )}
+
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{player.gamesPlayed}</span>
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
@@ -592,33 +640,56 @@ export default function TournamentDetailPage({ params }: Props) {
 
           {/* ── TOP 3 podium ─────────────────────────────────────────────── */}
           {top3.length >= 3 && (
-            <section className="py-16 px-4">
+            <section className="py-12 px-4">
               <div className="max-w-4xl mx-auto">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '2rem' }}>
-                  <div style={{ width: 3, height: 28, background: 'var(--primary)', borderRadius: 2 }} />
+                  <div style={{ width: 3, height: 28, background: 'var(--accent)', borderRadius: 2 }} />
                   <h2 className="font-display text-2xl tracking-widest text-foreground">TOP 3</h2>
                 </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
-                  gap: 16,
-                  maxWidth: 800,
-                  margin: '0 auto 3rem',
-                  alignItems: 'end',
-                }}>
-                  {/* 2nd — left, lower */}
-                  <div style={{ paddingTop: 48 }}>
-                    <PodiumCard player={top3[1]} rank={2} />
+                <div style={{ maxWidth: 640, margin: '0 auto' }}>
+                  {/* Trophy above #1 */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}
+                  >
+                    <Trophy className="w-8 h-8 text-amber-400" style={{ filter: 'drop-shadow(0 0 8px rgba(212,160,23,0.5))' }} />
+                  </motion.div>
+
+                  {/* Cards row — 2nd left | 1st center | 3rd right */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr 1fr',
+                    gap: 12,
+                    alignItems: 'flex-end',
+                    marginBottom: 0,
+                  }}>
+                    {/* 2nd — aligned to bottom of grid */}
+                    <div style={{ paddingBottom: 40 }}>
+                      <PodiumPlayerCard player={top3[1]} rank={2} />
+                    </div>
+                    {/* 1st — tallest, no padding */}
+                    <div>
+                      <PodiumPlayerCard player={top3[0]} rank={1} />
+                    </div>
+                    {/* 3rd — lower than 2nd */}
+                    <div style={{ paddingBottom: 60 }}>
+                      <PodiumPlayerCard player={top3[2]} rank={3} />
+                    </div>
                   </div>
-                  {/* 1st — center, highest */}
-                  <div>
-                    <PodiumCard player={top3[0]} rank={1} />
-                  </div>
-                  {/* 3rd — right, lower */}
-                  <div style={{ paddingTop: 64 }}>
-                    <PodiumCard player={top3[2]} rank={3} />
-                  </div>
+
+                  {/* SVG Platform below cards */}
+                  <motion.div
+                    initial={{ opacity: 0, scaleX: 0.8 }}
+                    whileInView={{ opacity: 1, scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+                  >
+                    <PodiumPlatform />
+                  </motion.div>
                 </div>
               </div>
             </section>
