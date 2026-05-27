@@ -26,65 +26,105 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-// ── Player stats computation ─────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-type PlayerStat = {
-  id: number
-  name: string
-  wins: number
-  draws: number
-  losses: number
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
 }
 
-function computePlayerStats(matches: ApiMatch[]): PlayerStat[] {
-  const map = new Map<number, PlayerStat>()
-  const ensure = (id: number, name: string) => {
-    if (!map.has(id)) map.set(id, { id, name, wins: 0, draws: 0, losses: 0 })
-    return map.get(id)!
-  }
-  for (const m of matches) {
-    const w = ensure(m.whitePlayerId, m.whitePlayerName)
-    const b = ensure(m.blackPlayerId, m.blackPlayerName)
-    if (m.result === 'WHITE_WIN') { w.wins++; b.losses++ }
-    else if (m.result === 'BLACK_WIN') { b.wins++; w.losses++ }
-    else { w.draws++; b.draws++ }
-  }
-  return Array.from(map.values()).sort(
-    (a, b) => (b.wins + b.draws * 0.5) - (a.wins + a.draws * 0.5)
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
+      <div
+        style={{ width: 3, height: 28, background: 'var(--primary)', borderRadius: 2, flexShrink: 0 }}
+      />
+      <h2 className="font-display text-2xl tracking-widest text-foreground">{children}</h2>
+    </div>
   )
 }
 
-// ── Podium config ────────────────────────────────────────────────────────────
-
-const PODIUM_CONFIG = [
-  { label: '1°', bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-400' },
-  { label: '2°', bg: 'bg-slate-400/10',  border: 'border-slate-400/30',  text: 'text-slate-300' },
-  { label: '3°', bg: 'bg-orange-800/10', border: 'border-orange-700/30', text: 'text-orange-500' },
-]
-
-// ── Match result display ─────────────────────────────────────────────────────
-
-function MatchResultDisplay({ result }: { result: ApiMatch['result'] }) {
+function ResultDisplay({
+  result,
+  whitePlayerName,
+  blackPlayerName,
+}: {
+  result: ApiMatch['result']
+  whitePlayerName: string
+  blackPlayerName: string
+}) {
   if (result === 'WHITE_WIN') {
     return (
-      <span className="font-mono text-sm font-bold">
-        <span style={{ color: 'var(--primary)' }}>1</span>
-        <span className="text-muted-foreground mx-1">–</span>
-        <span style={{ color: 'var(--trend-down)' }}>0</span>
-      </span>
+      <div className="flex items-center justify-between gap-4 py-3">
+        <span
+          className="flex-1 text-sm font-semibold text-right truncate"
+          style={{ color: 'var(--primary)' }}
+        >
+          {whitePlayerName}
+        </span>
+        <span
+          className="flex-shrink-0 font-mono text-sm px-3 py-1 rounded-lg"
+          style={{ background: 'rgba(109,190,69,0.12)', color: 'var(--primary)' }}
+        >
+          1 – 0
+        </span>
+        <span className="flex-1 text-sm text-muted-foreground truncate">
+          {blackPlayerName}
+        </span>
+      </div>
     )
   }
   if (result === 'BLACK_WIN') {
     return (
-      <span className="font-mono text-sm font-bold">
-        <span style={{ color: 'var(--trend-down)' }}>0</span>
-        <span className="text-muted-foreground mx-1">–</span>
-        <span style={{ color: 'var(--primary)' }}>1</span>
-      </span>
+      <div className="flex items-center justify-between gap-4 py-3">
+        <span className="flex-1 text-sm text-muted-foreground text-right truncate">
+          {whitePlayerName}
+        </span>
+        <span
+          className="flex-shrink-0 font-mono text-sm px-3 py-1 rounded-lg"
+          style={{ background: 'rgba(224,92,92,0.12)', color: '#e05c5c' }}
+        >
+          0 – 1
+        </span>
+        <span
+          className="flex-1 text-sm font-semibold truncate"
+          style={{ color: 'var(--primary)' }}
+        >
+          {blackPlayerName}
+        </span>
+      </div>
     )
   }
-  return <span className="font-mono text-sm font-bold text-muted-foreground">½ – ½</span>
+  return (
+    <div className="flex items-center justify-between gap-4 py-3">
+      <span className="flex-1 text-sm text-muted-foreground text-right truncate">
+        {whitePlayerName}
+      </span>
+      <span
+        className="flex-shrink-0 font-mono text-sm px-3 py-1 rounded-lg"
+        style={{ background: 'rgba(138,155,176,0.12)', color: 'var(--text-secondary)' }}
+      >
+        ½ – ½
+      </span>
+      <span className="flex-1 text-sm text-muted-foreground truncate">
+        {blackPlayerName}
+      </span>
+    </div>
+  )
 }
+
+// ── Podium config: 1st center, 2nd left, 3rd right ───────────────────────────
+
+const PODIUM = [
+  { label: '1°', bg: 'bg-amber-500/10', border: 'border-amber-500/40', text: 'text-amber-400', order: 'md:order-2', mt: 'md:mt-0' },
+  { label: '2°', bg: 'bg-slate-400/10',  border: 'border-slate-400/30',  text: 'text-slate-300',  order: 'md:order-1', mt: 'md:mt-8' },
+  { label: '3°', bg: 'bg-orange-800/10', border: 'border-orange-700/30', text: 'text-orange-500', order: 'md:order-3', mt: 'md:mt-8' },
+]
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
@@ -92,42 +132,96 @@ export default function TournamentDetailPage({ params }: Props) {
   const { id } = use(params)
 
   const [tournament, setTournament] = useState<any>(null)
-  const [matches, setMatches] = useState<ApiMatch[]>([])
   const [loading, setLoading] = useState(true)
+  const [matches, setMatches] = useState<ApiMatch[]>([])
+  const [matchesLoading, setMatchesLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([
-      fetch(`${API_URL}/tournaments/${id}`).then((r) => r.json()),
-      fetch(`${API_URL}/matches/tournament/${id}`).then((r) => r.json()),
-    ])
-      .then(([t, m]) => {
-        setTournament(t)
-        setMatches(Array.isArray(m) ? m : [])
-      })
+    fetch(`${API_URL}/tournaments/${id}`)
+      .then((r) => r.json())
+      .then((data) => setTournament(data))
       .catch((err) => console.error('Error fetching tournament:', err))
       .finally(() => setLoading(false))
   }, [id])
 
-  const playerStats = useMemo(() => computePlayerStats(matches), [matches])
+  useEffect(() => {
+    fetch(`${API_URL}/matches/tournament/${id}`)
+      .then((r) => r.json())
+      .then((data: ApiMatch[]) => setMatches(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setMatchesLoading(false))
+  }, [id])
 
-  const totalDraws = matches.filter((m) => m.result === 'DRAW').length
-  const drawsPct = matches.length > 0 ? Math.round((totalDraws / matches.length) * 100) : 0
+  // ── Computed stats ───────────────────────────────────────────────────────
 
-  const matchesByRound = useMemo(() => {
-    const map = new Map<number, ApiMatch[]>()
-    for (const m of matches) {
-      if (!map.has(m.round)) map.set(m.round, [])
-      map.get(m.round)!.push(m)
+  const totalMatches = matches.length
+  const uniquePlayers = useMemo(
+    () =>
+      new Set([
+        ...matches.map((m) => m.whitePlayerId),
+        ...matches.map((m) => m.blackPlayerId),
+      ]).size,
+    [matches]
+  )
+  const totalRounds = totalMatches > 0 ? Math.max(...matches.map((m) => m.round)) : 0
+  const draws = matches.filter((m) => m.result === 'DRAW').length
+  const drawPct = totalMatches > 0 ? Math.round((draws / totalMatches) * 100) : 0
+
+  // ── Player scores ────────────────────────────────────────────────────────
+
+  const top3 = useMemo(() => {
+    const scores: Record<
+      number,
+      { id: number; name: string; points: number; wins: number; draws: number; losses: number }
+    > = {}
+
+    const ensure = (pid: number, name: string) => {
+      if (!scores[pid]) scores[pid] = { id: pid, name, points: 0, wins: 0, draws: 0, losses: 0 }
     }
-    return Array.from(map.entries()).sort(([a], [b]) => a - b)
+
+    for (const m of matches) {
+      ensure(m.whitePlayerId, m.whitePlayerName)
+      ensure(m.blackPlayerId, m.blackPlayerName)
+      if (m.result === 'WHITE_WIN') {
+        scores[m.whitePlayerId].points += 1
+        scores[m.whitePlayerId].wins += 1
+        scores[m.blackPlayerId].losses += 1
+      } else if (m.result === 'BLACK_WIN') {
+        scores[m.blackPlayerId].points += 1
+        scores[m.blackPlayerId].wins += 1
+        scores[m.whitePlayerId].losses += 1
+      } else {
+        scores[m.whitePlayerId].points += 0.5
+        scores[m.whitePlayerId].draws += 1
+        scores[m.blackPlayerId].points += 0.5
+        scores[m.blackPlayerId].draws += 1
+      }
+    }
+
+    return Object.values(scores)
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 3)
   }, [matches])
+
+  // ── Rounds ───────────────────────────────────────────────────────────────
+
+  const rounds = useMemo(
+    () =>
+      Array.from({ length: totalRounds }, (_, i) => ({
+        round: i + 1,
+        matches: matches.filter((m) => m.round === i + 1),
+      })),
+    [matches, totalRounds]
+  )
+
+  // ── Status/type helpers ──────────────────────────────────────────────────
 
   const getStatusStyle = (status: string) => {
     switch (status) {
-      case 'ongoing':  return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-      case 'upcoming': return 'bg-primary/20 text-primary border-primary/30'
+      case 'ongoing':   return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+      case 'upcoming':  return 'bg-primary/20 text-primary border-primary/30'
       case 'completed': return 'bg-muted text-muted-foreground border-border'
-      default: return ''
+      default:          return ''
     }
   }
 
@@ -135,7 +229,7 @@ export default function TournamentDetailPage({ params }: Props) {
     switch (type) {
       case 'Blitz':
       case 'Rapid': return <Clock className="w-5 h-5" />
-      default: return <Trophy className="w-5 h-5" />
+      default:       return <Trophy className="w-5 h-5" />
     }
   }
 
@@ -150,13 +244,6 @@ export default function TournamentDetailPage({ params }: Props) {
   if (!tournament) {
     notFound()
   }
-
-  const statsItems = [
-    { icon: Swords,     label: 'Partidas',   value: matches.length,     suffix: '' },
-    { icon: Users,      label: 'Jugadores',  value: playerStats.length, suffix: '' },
-    { icon: Layers,     label: 'Rondas',     value: tournament.rounds,  suffix: '' },
-    { icon: BarChart3,  label: 'Tablas',     value: drawsPct,           suffix: '%' },
-  ]
 
   return (
     <main className="min-h-screen">
@@ -285,9 +372,16 @@ export default function TournamentDetailPage({ params }: Props) {
         </div>
       </section>
 
-      {matches.length > 0 && (
+      {/* ── Matches loading ───────────────────────────────────────────────── */}
+      {matchesLoading && (
+        <div className="text-center text-muted-foreground py-12">
+          Cargando partidas...
+        </div>
+      )}
+
+      {!matchesLoading && totalMatches > 0 && (
         <>
-          {/* ── Section A — Stats strip ──────────────────────────────────── */}
+          {/* ── Section A — Stats strip ────────────────────────────────── */}
           <section
             className="py-12 px-4"
             style={{
@@ -296,68 +390,96 @@ export default function TournamentDetailPage({ params }: Props) {
               borderBottom: '1px solid var(--border-subtle)',
             }}
           >
-            <div className="max-w-4xl mx-auto">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {statsItems.map((stat, i) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.08 }}
-                    className="glass rounded-2xl p-5 flex flex-col gap-2"
-                  >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              {[
+                { icon: Swords,    label: 'Partidas',  value: totalMatches },
+                { icon: Users,     label: 'Jugadores', value: uniquePlayers },
+                { icon: Layers,    label: 'Rondas',    value: totalRounds },
+                { icon: BarChart3, label: '% Tablas',  value: `${drawPct}%` },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className="glass rounded-2xl p-6 text-center"
+                >
+                  <div className="flex justify-center mb-3">
                     <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                       <stat.icon className="w-5 h-5 text-primary" />
                     </div>
-                    <div className="text-2xl font-bold text-foreground">
-                      {stat.value}{stat.suffix}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </div>
+                  </div>
+                  <div className="font-display text-3xl text-primary">{stat.value}</div>
+                  <div className="text-xs text-muted-foreground mt-1 uppercase tracking-widest">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </section>
 
-          {/* ── Section B — Top 3 podium ─────────────────────────────────── */}
-          {playerStats.length >= 1 && (
+          {/* ── Section B — Top 3 podium ──────────────────────────────── */}
+          {top3.length >= 1 && (
             <section className="py-16 px-4">
               <div className="max-w-4xl mx-auto">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5 }}
-                  className="mb-8"
-                >
-                  <h2 className="text-xl font-bold text-foreground">Podio del Torneo</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Top 3 jugadores por puntuación
-                  </p>
-                </motion.div>
+                <SectionTitle>TOP 3</SectionTitle>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {playerStats.slice(0, 3).map((player, i) => {
-                    const cfg = PODIUM_CONFIG[i]
-                    const score = player.wins + player.draws * 0.5
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                  {top3.map((player, i) => {
+                    const cfg = PODIUM[i]
                     return (
                       <motion.div
                         key={player.id}
                         initial={{ opacity: 0, y: 24 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: i * 0.1 }}
-                        className={cn('glass rounded-2xl border p-6', cfg.bg, cfg.border)}
+                        viewport={{ once: true, margin: '-60px' }}
+                        transition={{ duration: 0.5, delay: i * 0.15 }}
+                        whileHover={{ y: -4 }}
+                        className={cn(
+                          'glass rounded-2xl border p-6 cursor-default',
+                          cfg.bg,
+                          cfg.border,
+                          cfg.order,
+                          cfg.mt
+                        )}
                       >
-                        <div className={cn('text-3xl font-bold mb-3', cfg.text)}>{cfg.label}</div>
-                        <div className="font-semibold text-foreground text-lg leading-tight mb-1 truncate">
+                        {/* Rank + initials avatar */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div
+                            className={cn(
+                              'w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold',
+                              cfg.bg,
+                              cfg.text
+                            )}
+                            style={{ border: '1px solid currentColor' }}
+                          >
+                            {cfg.label}
+                          </div>
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-foreground"
+                            style={{ background: 'rgba(255,255,255,0.07)' }}
+                          >
+                            {getInitials(player.name)}
+                          </div>
+                        </div>
+
+                        {/* Name */}
+                        <div className="font-semibold text-foreground text-base leading-tight mb-1 truncate">
                           {player.name}
                         </div>
-                        <div className={cn('text-2xl font-bold mb-4', cfg.text)}>
-                          {score % 1 === 0 ? score : score.toFixed(1)}{' '}
-                          <span className="text-base font-normal text-muted-foreground">pts</span>
+
+                        {/* Score */}
+                        <div className={cn('font-display text-3xl mb-4', cfg.text)}>
+                          {player.points % 1 === 0
+                            ? player.points
+                            : player.points.toFixed(1)}{' '}
+                          <span className="text-base font-sans font-normal text-muted-foreground">
+                            pts
+                          </span>
                         </div>
+
+                        {/* W / D / L */}
                         <div className="flex gap-4 text-sm">
                           <span>
                             <span className="font-bold" style={{ color: 'var(--primary)' }}>
@@ -370,7 +492,10 @@ export default function TournamentDetailPage({ params }: Props) {
                             <span className="text-muted-foreground">T</span>
                           </span>
                           <span>
-                            <span className="font-bold" style={{ color: 'var(--trend-down)' }}>
+                            <span
+                              className="font-bold"
+                              style={{ color: 'var(--trend-down)' }}
+                            >
                               {player.losses}
                             </span>{' '}
                             <span className="text-muted-foreground">D</span>
@@ -384,7 +509,7 @@ export default function TournamentDetailPage({ params }: Props) {
             </section>
           )}
 
-          {/* ── Section C — Round by round ───────────────────────────────── */}
+          {/* ── Section C — Round by round ────────────────────────────── */}
           <section
             className="py-16 px-4"
             style={{
@@ -393,30 +518,20 @@ export default function TournamentDetailPage({ params }: Props) {
             }}
           >
             <div className="max-w-4xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="mb-8"
-              >
-                <h2 className="text-xl font-bold text-foreground">Ronda por Ronda</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Todas las partidas del torneo
-                </p>
-              </motion.div>
+              <SectionTitle>RONDA POR RONDA</SectionTitle>
 
-              <div className="space-y-6">
-                {matchesByRound.map(([round, roundMatches], i) => (
+              <div className="space-y-5">
+                {rounds.map(({ round, matches: roundMatches }, i) => (
                   <motion.div
                     key={round}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 24 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.3) }}
+                    viewport={{ once: true, margin: '-60px' }}
+                    transition={{ duration: 0.4, delay: Math.min(i * 0.05, 0.25) }}
                     className="glass rounded-2xl border border-border/50 overflow-hidden"
                   >
-                    <div className="px-5 py-3 border-b border-border/50 flex items-center gap-3"
+                    <div
+                      className="px-5 py-3 border-b border-border/50 flex items-center gap-3"
                       style={{ background: 'rgba(109,190,69,0.05)' }}
                     >
                       <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -430,35 +545,14 @@ export default function TournamentDetailPage({ params }: Props) {
                       </span>
                     </div>
 
-                    <div className="divide-y divide-border/30">
+                    <div className="divide-y divide-border/30 px-5">
                       {roundMatches.map((match) => (
-                        <div key={match.id} className="px-5 py-3 flex items-center gap-2 md:gap-4">
-                          <span
-                            className={cn(
-                              'flex-1 text-sm text-right truncate',
-                              match.result === 'WHITE_WIN'
-                                ? 'font-semibold text-foreground'
-                                : 'text-muted-foreground'
-                            )}
-                          >
-                            {match.whitePlayerName}
-                          </span>
-
-                          <div className="flex-shrink-0 w-16 md:w-20 text-center">
-                            <MatchResultDisplay result={match.result} />
-                          </div>
-
-                          <span
-                            className={cn(
-                              'flex-1 text-sm text-left truncate',
-                              match.result === 'BLACK_WIN'
-                                ? 'font-semibold text-foreground'
-                                : 'text-muted-foreground'
-                            )}
-                          >
-                            {match.blackPlayerName}
-                          </span>
-                        </div>
+                        <ResultDisplay
+                          key={match.id}
+                          result={match.result}
+                          whitePlayerName={match.whitePlayerName}
+                          blackPlayerName={match.blackPlayerName}
+                        />
                       ))}
                     </div>
                   </motion.div>
