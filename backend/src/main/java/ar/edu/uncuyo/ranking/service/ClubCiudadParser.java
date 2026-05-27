@@ -2,14 +2,15 @@ package ar.edu.uncuyo.ranking.service;
 
 import org.springframework.stereotype.Component;
 
-import java.text.Normalizer;
-import java.util.Locale;
-
 /**
- * Parses the Club/Ciudad field from Chess Results exports.
- * New convention: "INGENIERIA/MECATRONICA" → faculty + career resolved automatically.
- * Legacy (no "/"): infers faculty from career keyword (backward compatible).
- * Null/blank → returns ("", "") without throwing.
+ * Parses the Club/Ciudad field from Chess Results / Swiss Manager exports.
+ *
+ * Convention: "INGENIERIA/MECATRONICA"
+ *   → faculty = "Facultad de Ingeniería"  (exact name from faculties library)
+ *   → career  = "Mecatronica"             (right side, first-letter capitalized)
+ *
+ * Legacy (no slash): infer faculty from career name for backward compatibility.
+ * Null or blank: return empty strings, no exception.
  */
 @Component
 public class ClubCiudadParser {
@@ -21,141 +22,117 @@ public class ClubCiudadParser {
             return new ParsedClubCiudad("", "");
         }
 
-        String normalized = normalize(clubCiudad.trim());
+        String trimmed = clubCiudad.trim();
 
-        if (normalized.contains("/")) {
-            String[] parts = normalized.split("/", 2);
-            String rawFaculty = parts[0].trim();
+        if (trimmed.contains("/")) {
+            String[] parts = trimmed.split("/", 2);
+            String rawFaculty = parts[0].trim().toUpperCase();
             String rawCareer  = parts.length > 1 ? parts[1].trim() : "";
-            return new ParsedClubCiudad(mapFaculty(rawFaculty), mapCareer(rawCareer));
+            return new ParsedClubCiudad(mapFaculty(rawFaculty), capitalizeFirst(rawCareer));
         }
 
-        // Legacy: no slash — infer faculty from career keyword
-        return new ParsedClubCiudad(inferFacultyFromCareer(normalized), mapLegacyCareer(normalized));
+        // Legacy format — no slash, backward compatibility
+        String upper = trimmed.toUpperCase();
+        return new ParsedClubCiudad(inferFacultyLegacy(upper), capitalizeFirst(trimmed));
     }
 
-    // ── Normalization ────────────────────────────────────────────────────────
+    // ── Capitalize helper ────────────────────────────────────────────────────
+    // "MECATRONICA" → "Mecatronica"   "abogacia" → "Abogacia"   "" → ""
 
-    private String normalize(String raw) {
-        return Normalizer.normalize(raw.toUpperCase(Locale.ROOT), Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
+    private String capitalizeFirst(String s) {
+        if (s == null || s.isBlank()) return "";
+        String lower = s.toLowerCase();
+        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
     // ── Faculty mapping (left side of "/") ──────────────────────────────────
+    // Exact return values must match frontend/lib/faculties.ts
 
     private String mapFaculty(String raw) {
-        // Expand abbreviations to full words that UncuyoFacultyCatalog can resolve
-        String expanded = switch (raw) {
-            case "ING"                                       -> "INGENIERIA";
-            case "ARQ", "ARQUITECTURA"                       -> "ARTES Y DISENO";
-            case "ECO"                                       -> "ECONOMIA";
-            case "DER"                                       -> "DERECHO";
-            case "MED"                                       -> "MEDICINA";
-            case "FILO"                                      -> "FILOSOFIA Y LETRAS";
-            case "ODO"                                       -> "ODONTOLOGIA";
-            case "APLICADAS", "CIENCIAS APLICADAS"           -> "CIENCIAS APLICADAS A LA INDUSTRIA";
-            case "AGRARIAS"                                  -> "CIENCIAS AGRARIAS";
-            case "EXACTAS", "CIENCIAS EXACTAS"               -> "CIENCIAS EXACTAS Y NATURALES";
-            case "POLITICAS", "CIENCIAS POLITICAS"           -> "CIENCIAS POLITICAS Y SOCIALES";
-            case "ARTES", "ARTES Y DISENO"                   -> "ARTES Y DISENO";
-            case "EDUCACION"                                 -> "EDUCACION";
-            default                                          -> raw;
-        };
-
-        String resolved = UncuyoFacultyCatalog.resolve(expanded);
-        if (UncuyoFacultyCatalog.allFaculties().contains(resolved)) {
-            return resolved;
-        }
-        return capitalize(raw);
-    }
-
-    // ── Career mapping (right side of "/") ──────────────────────────────────
-
-    private String mapCareer(String raw) {
-        if (raw.isBlank()) return "";
         return switch (raw) {
-            // Engineering
-            case "MECATRONICA"                          -> "Ingeniería en Mecatrónica";
-            case "CIVIL"                                -> "Ingeniería Civil";
-            case "INDUSTRIAL"                           -> "Ingeniería Industrial";
-            case "SISTEMAS"                             -> "Ingeniería en Sistemas de Información";
-            case "ELECTRONICA"                          -> "Ingeniería Electrónica";
-            case "QUIMICA"                              -> "Ingeniería Química";
-            case "PETROLERA"                            -> "Ingeniería en Petróleo";
-            case "COMPUTACION"                          -> "Licenciatura en Ciencias de la Computación";
-            // Architecture / Arts & Design
-            case "ARQUITECTURA"                         -> "Arquitectura";
-            case "DISENO", "DISENO INDUSTRIAL"          -> "Diseño Industrial";
-            // Economics
-            case "ADMINISTRACION"                       -> "Licenciatura en Administración";
-            case "CONTADOR", "CONTADURIA", "CONTABILIDAD" -> "Contador Público Nacional";
-            case "ECONOMIA"                             -> "Licenciatura en Economía";
-            // Law
-            case "ABOGACIA", "ABOGADO"                  -> "Abogacía";
-            case "NOTARIADO"                            -> "Notariado";
-            // Medicine
-            case "MEDICINA"                             -> "Medicina";
-            case "ENFERMERIA"                           -> "Enfermería";
-            case "NUTRICION"                            -> "Nutrición";
-            // Exact Sciences
-            case "MATEMATICA"                           -> "Licenciatura en Matemática";
-            case "FISICA"                               -> "Licenciatura en Física";
-            case "BIOLOGIA"                             -> "Licenciatura en Biología";
-            // Philosophy & Letters
-            case "FILOSOFIA"                            -> "Filosofía";
-            case "HISTORIA"                             -> "Historia";
-            case "LETRAS"                               -> "Letras";
-            case "GEOGRAFIA"                            -> "Geografía";
-            // Dentistry
-            case "ODONTOLOGIA"                          -> "Odontología";
-            default                                     -> capitalize(raw);
+            case "INGENIERIA", "INGENIERÍA", "ING"
+                -> "Facultad de Ingeniería";
+
+            case "ARTES", "ARTES Y DISENO", "ARTES Y DISEÑO",
+                 "ARQ", "ARQUITECTURA"
+                -> "Facultad de Artes y Diseño";
+
+            case "ECONOMIA", "ECONOMÍA", "ECO",
+                 "CIENCIAS ECONOMICAS", "CIENCIAS ECONÓMICAS"
+                -> "Facultad de Ciencias Económicas";
+
+            case "DERECHO", "DER"
+                -> "Facultad de Derecho";
+
+            case "MEDICINA", "MED",
+                 "CIENCIAS MEDICAS", "CIENCIAS MÉDICAS"
+                -> "Facultad de Ciencias Médicas";
+
+            case "EXACTAS", "CIENCIAS EXACTAS",
+                 "CIENCIAS EXACTAS Y NATURALES"
+                -> "Facultad de Ciencias Exactas y Naturales";
+
+            case "FILOSOFIA", "FILOSOFÍA", "FILO",
+                 "FILOSOFIA Y LETRAS", "FILOSOFÍA Y LETRAS"
+                -> "Facultad de Filosofía y Letras";
+
+            case "POLITICAS", "POLÍTICAS",
+                 "CIENCIAS POLITICAS", "CIENCIAS POLÍTICAS"
+                -> "Facultad de Ciencias Políticas y Sociales";
+
+            case "EDUCACION", "EDUCACIÓN"
+                -> "Facultad de Educación";
+
+            case "ODONTOLOGIA", "ODONTOLOGÍA", "ODO"
+                -> "Facultad de Odontología";
+
+            case "AGRARIAS", "CIENCIAS AGRARIAS"
+                -> "Facultad de Ciencias Agrarias";
+
+            case "APLICADAS", "CIENCIAS APLICADAS",
+                 "CIENCIAS APLICADAS A LA INDUSTRIA", "CAI"
+                -> "Facultad de Ciencias Aplicadas a la Industria";
+
+            // Unknown: return capitalized raw so it's visible in Step 2
+            default -> capitalizeFirst(raw);
         };
     }
 
-    // ── Legacy: no slash, career keyword only (backward compatibility) ───────
+    // ── Legacy: no slash — infer faculty from career name ───────────────────
+    // Only for tournaments imported before the FACULTY/CAREER convention.
 
-    private String mapLegacyCareer(String raw) {
-        return switch (raw) {
-            case "MECATRONICA"  -> "Ingeniería en Mecatrónica";
-            case "CIVIL"        -> "Ingeniería Civil";
-            case "INDUSTRIAL"   -> "Ingeniería Industrial";
-            case "COMPUTACION"  -> "Licenciatura en Ciencias de la Computación";
-            case "ARQUITECTURA" -> "Arquitectura";
-            case "SISTEMAS"     -> "Ingeniería en Sistemas de Información";
-            case "ELECTRONICA"  -> "Ingeniería Electrónica";
-            default             -> capitalize(raw);
-        };
-    }
+    private String inferFacultyLegacy(String upper) {
+        return switch (upper) {
+            case "MECATRONICA", "MECATRÓNICA",
+                 "CIVIL", "INDUSTRIAL", "COMPUTACION", "COMPUTACIÓN",
+                 "SISTEMAS", "ELECTRONICA", "ELECTRÓNICA",
+                 "QUIMICA", "QUÍMICA", "PETROLERA", "ARQUITECTURA"
+                -> "Facultad de Ingeniería";
 
-    private String inferFacultyFromCareer(String raw) {
-        return switch (raw) {
-            case "MECATRONICA", "CIVIL", "INDUSTRIAL", "COMPUTACION",
-                 "SISTEMAS", "ELECTRONICA", "QUIMICA", "PETROLERA"
-                    -> "Facultad de Ingeniería";
-            case "ARQUITECTURA", "DISENO", "DISENO INDUSTRIAL"
-                    -> "Facultad de Artes y Diseño";
-            case "ADMINISTRACION", "CONTADOR", "CONTADURIA",
-                 "CONTABILIDAD", "ECONOMIA"
-                    -> "Facultad de Ciencias Económicas";
-            case "ABOGACIA", "ABOGADO", "NOTARIADO"
-                    -> "Facultad de Derecho";
-            case "MEDICINA", "ENFERMERIA", "NUTRICION"
-                    -> "Facultad de Ciencias Médicas";
-            case "MATEMATICA", "FISICA", "BIOLOGIA"
-                    -> "Facultad de Ciencias Exactas y Naturales";
-            case "FILOSOFIA", "HISTORIA", "LETRAS", "GEOGRAFIA"
-                    -> "Facultad de Filosofía y Letras";
-            case "ODONTOLOGIA"
-                    -> "Facultad de Odontología";
+            case "ADMINISTRACION", "ADMINISTRACIÓN",
+                 "CONTADOR", "CONTADURIA", "CONTADURÍA",
+                 "ECONOMIA", "ECONOMÍA"
+                -> "Facultad de Ciencias Económicas";
+
+            case "ABOGACIA", "ABOGACÍA", "NOTARIADO"
+                -> "Facultad de Derecho";
+
+            case "MEDICINA", "ENFERMERIA", "ENFERMERÍA",
+                 "NUTRICION", "NUTRICIÓN"
+                -> "Facultad de Ciencias Médicas";
+
+            case "MATEMATICA", "MATEMÁTICA", "FISICA", "FÍSICA",
+                 "BIOLOGIA", "BIOLOGÍA"
+                -> "Facultad de Ciencias Exactas y Naturales";
+
+            case "FILOSOFIA", "FILOSOFÍA", "HISTORIA",
+                 "LETRAS", "GEOGRAFIA", "GEOGRAFÍA"
+                -> "Facultad de Filosofía y Letras";
+
+            case "ODONTOLOGIA", "ODONTOLOGÍA"
+                -> "Facultad de Odontología";
+
             default -> "";
         };
-    }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private String capitalize(String s) {
-        if (s == null || s.isBlank()) return s;
-        String lower = s.toLowerCase(Locale.ROOT);
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 }
