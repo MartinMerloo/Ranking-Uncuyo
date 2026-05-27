@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +28,8 @@ import java.util.regex.Pattern;
 
 @Component
 public class CrossTableExcelParser {
+
+    private static final Logger log = LoggerFactory.getLogger(CrossTableExcelParser.class);
 
     private static final int ROW_TOURNAMENT_NAME = 1;
     private static final int ROW_HEADER = 4;
@@ -258,29 +262,34 @@ public class CrossTableExcelParser {
 
         Matcher matcher = ROUND_RESULT_PATTERN.matcher(trimmed);
         if (!matcher.matches()) {
+            log.info("Skipping unrecognized round result cell: '{}'", trimmed);
             return Optional.empty();
         }
 
         int opponentSeed = Integer.parseInt(matcher.group(1));
         char color = Character.toLowerCase(matcher.group(2).charAt(0));
-        double playerScore = parsePlayerScore(matcher.group(3));
-        return Optional.of(new ParsedRoundResultData(opponentSeed, color, playerScore));
+        Optional<Double> playerScore = parsePlayerScore(matcher.group(3));
+        if (playerScore.isEmpty()) {
+            log.info("Skipping round result with unrecognized score part: '{}'", matcher.group(3));
+            return Optional.empty();
+        }
+        return Optional.of(new ParsedRoundResultData(opponentSeed, color, playerScore.get()));
     }
 
-    private double parsePlayerScore(String scorePart) {
+    private Optional<Double> parsePlayerScore(String scorePart) {
         String normalized = scorePart.trim()
                 .replace("½", "0.5")
                 .replace("1/2", "0.5");
         if ("1".equals(normalized)) {
-            return 1.0;
+            return Optional.of(1.0);
         }
         if ("0".equals(normalized)) {
-            return 0.0;
+            return Optional.of(0.0);
         }
         if ("0.5".equals(normalized)) {
-            return 0.5;
+            return Optional.of(0.5);
         }
-        throw new BadRequestException("Unrecognized round result score: " + scorePart);
+        return Optional.empty();
     }
 
     public MatchResult toMatchResult(char playerColor, double playerScore) {

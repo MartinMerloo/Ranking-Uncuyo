@@ -7,6 +7,7 @@ import {
   AlertCircle,
   CheckCircle2,
   FileSpreadsheet,
+  Info,
   Loader2,
   Upload,
   Users,
@@ -324,6 +325,19 @@ export function ImportSection() {
               inputRef={secondaryInputRef}
             />
 
+            <div className="flex items-start gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary/70" />
+              <span>
+                <strong className="text-foreground">Formato Club/Ciudad recomendado:</strong>{' '}
+                En Swiss Manager usá{' '}
+                <code className="rounded bg-card px-1 py-0.5 font-mono">FACULTAD/CARRERA</code>
+                {' '}(ej.{' '}
+                <code className="rounded bg-card px-1 py-0.5 font-mono">ING/MECATRONICA</code>,{' '}
+                <code className="rounded bg-card px-1 py-0.5 font-mono">ECO/ADMINISTRACION</code>
+                ) para que se asignen automáticamente sin mapeo manual.
+              </span>
+            </div>
+
             <div className="flex justify-end">
               <Button
                 className="gap-2"
@@ -365,6 +379,30 @@ export function ImportSection() {
                 </CardDescription>
               </CardHeader>
             </Card>
+
+            {(() => {
+              const autoMapped = discoverResult.clubSuggestions.filter(
+                (s) => s.faculty?.trim() && s.career?.trim()
+              ).length
+              const needsManual = discoverResult.uniqueClubValues.length - autoMapped
+              if (autoMapped === 0 && needsManual === 0) return null
+              return (
+                <div className="flex flex-wrap gap-4 rounded-xl border border-border/50 bg-card/50 px-4 py-3 text-sm">
+                  {autoMapped > 0 && (
+                    <span className="flex items-center gap-1.5 text-primary">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {autoMapped} auto-mapeado{autoMapped !== 1 ? 's' : ''} — verificá y ajustá si hace falta
+                    </span>
+                  )}
+                  {needsManual > 0 && (
+                    <span className="flex items-center gap-1.5 text-amber-400">
+                      <Info className="h-4 w-4" />
+                      {needsManual} requiere{needsManual !== 1 ? 'n' : ''} completar manualmente
+                    </span>
+                  )}
+                </div>
+              )
+            })()}
 
             <div className="space-y-4">
               {discoverResult.uniqueClubValues.map((club) => {

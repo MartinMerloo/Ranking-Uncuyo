@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 public class TournamentImportService {
 
     private final CrossTableExcelParser crossTableExcelParser;
+    private final ClubCiudadParser clubCiudadParser;
     private final ImportPlayerRepository importPlayerRepository;
     private final PlayerService playerService;
     private final TournamentService tournamentService;
@@ -45,6 +46,7 @@ public class TournamentImportService {
 
     public TournamentImportService(
             CrossTableExcelParser crossTableExcelParser,
+            ClubCiudadParser clubCiudadParser,
             ImportPlayerRepository importPlayerRepository,
             PlayerService playerService,
             TournamentService tournamentService,
@@ -52,6 +54,7 @@ public class TournamentImportService {
             EloCalculationService eloCalculationService,
             ObjectMapper objectMapper) {
         this.crossTableExcelParser = crossTableExcelParser;
+        this.clubCiudadParser = clubCiudadParser;
         this.importPlayerRepository = importPlayerRepository;
         this.playerService = playerService;
         this.tournamentService = tournamentService;
@@ -120,8 +123,8 @@ public class TournamentImportService {
     private List<ClubMappingSuggestion> buildSuggestions(List<String> uniqueClubs) {
         return uniqueClubs.stream()
                 .map(club -> {
-                    ClubCareerMapping suggested = DefaultCareerMapper.suggest(club);
-                    return new ClubMappingSuggestion(club, suggested.getFaculty(), suggested.getCareer());
+                    ClubCiudadParser.ParsedClubCiudad parsed = clubCiudadParser.parse(club);
+                    return new ClubMappingSuggestion(club, parsed.faculty(), parsed.career());
                 })
                 .toList();
     }
