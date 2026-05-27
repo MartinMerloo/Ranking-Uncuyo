@@ -111,6 +111,17 @@ export async function apiDelete(path: string): Promise<void> {
   }
 }
 
+export interface ApiStandingEntry {
+  playerId: number
+  playerName: string
+  points: number
+  wins: number
+  draws: number
+  losses: number
+  byes: number
+  gamesPlayed: number
+}
+
 export interface ApiMatch {
   id: number
   tournamentId: number

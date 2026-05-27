@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ar.edu.uncuyo.ranking.dto.ImportResult;
 import ar.edu.uncuyo.ranking.dto.TournamentRequest;
 import ar.edu.uncuyo.ranking.dto.TournamentResponse;
+import ar.edu.uncuyo.ranking.dto.TournamentStandingEntry;
 import ar.edu.uncuyo.ranking.service.TournamentImportService;
 import ar.edu.uncuyo.ranking.service.TournamentService;
 import jakarta.validation.Valid;
@@ -49,6 +50,11 @@ public class TournamentController {
     @ResponseStatus(HttpStatus.CREATED)
     public TournamentResponse createTournament(@Valid @RequestBody TournamentRequest request) {
         return tournamentService.create(request);
+    }
+
+    @GetMapping("/{id}/standings")
+    public List<TournamentStandingEntry> getStandings(@PathVariable Long id) {
+        return tournamentService.getStandings(id);
     }
 
     @PostMapping(value = "/import-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
