@@ -110,3 +110,16 @@ export async function apiDelete(path: string): Promise<void> {
     throw new Error(await parseApiError(response))
   }
 }
+
+export interface ApiMatch {
+  id: number
+  tournamentId: number
+  tournamentName: string
+  round: number
+  whitePlayerId: number
+  whitePlayerName: string
+  blackPlayerId: number
+  blackPlayerName: string
+  result: 'WHITE_WIN' | 'BLACK_WIN' | 'DRAW'
+  date: string
+}

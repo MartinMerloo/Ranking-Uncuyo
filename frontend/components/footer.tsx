@@ -94,7 +94,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground">
-            &copy; {currentYear} Ranking UNCuyo. Todos los derechos reservados.
+            &copy; {currentYear} Ranking UNCuyo. Todos los derechos reservados. Creado por alumnos de FING
           </p>
           <p className="text-xs text-muted-foreground">
             Club de Ajedrez - Universidad Nacional de Cuyo
