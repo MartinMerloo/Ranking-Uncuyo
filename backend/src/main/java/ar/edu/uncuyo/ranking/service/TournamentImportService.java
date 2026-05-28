@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +104,7 @@ public class TournamentImportService {
 
         Map<Integer, Player> seedToPlayer = persistPlayers(plan);
         Long tournamentId = createTournament(plan);
+        registerTournamentParticipants(tournamentId, plan, seedToPlayer);
         int matchesCreated = createMatches(plan, seedToPlayer, tournamentId);
         int byeWinsApplied = applyByeWins(plan, seedToPlayer);
 
@@ -293,6 +295,21 @@ public class TournamentImportService {
             index.putIfAbsent(PlayerNameNormalizer.normalize(player.getFullName()), player);
         }
         return index;
+    }
+
+    private void registerTournamentParticipants(
+            Long tournamentId,
+            ImportPlan plan,
+            Map<Integer, Player> seedToPlayer) {
+        Map<Player, Integer> playerByeCounts = new LinkedHashMap<>();
+        for (ResolvedPlayer resolved : plan.resolvedPlayers()) {
+            Player player = seedToPlayer.get(resolved.parsedPlayer().seed());
+            if (player == null) {
+                continue;
+            }
+            playerByeCounts.put(player, resolved.parsedPlayer().byeRounds().size());
+        }
+        tournamentService.registerImportedParticipants(tournamentId, playerByeCounts);
     }
 
     private Long createTournament(ImportPlan plan) {

@@ -376,7 +376,7 @@ function FinalTableTab({ standings }: { standings: ApiStandingEntry[] }) {
                   </span>
                 </td>
 
-                {player.gamesPlayed === 0 ? (
+                {player.gamesPlayed === 0 && player.points === 0 && player.byes === 0 ? (
                   <td colSpan={hasByes ? 5 : 4} style={{ padding: '12px 16px', textAlign: 'center' }}>
                     <span style={{
                       fontSize: 11, color: 'var(--text-secondary)',
@@ -647,7 +647,7 @@ export default function TournamentDetailPage({ params }: Props) {
                   <h2 className="font-display text-2xl tracking-widest text-foreground">TOP 3</h2>
                 </div>
 
-                <div style={{ maxWidth: 640, margin: '0 auto' }}>
+                <div style={{ maxWidth: 600, margin: '0 auto' }}>
                   {/* Trophy above #1 */}
                   <motion.div
                     initial={{ opacity: 0, y: -16 }}
@@ -659,37 +659,40 @@ export default function TournamentDetailPage({ params }: Props) {
                     <Trophy className="w-8 h-8 text-amber-400" style={{ filter: 'drop-shadow(0 0 8px rgba(212,160,23,0.5))' }} />
                   </motion.div>
 
-                  {/* Cards row — 2nd left | 1st center | 3rd right */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr 1fr',
-                    gap: 12,
-                    alignItems: 'flex-end',
-                    marginBottom: 0,
-                  }}>
-                    {/* 2nd — aligned to bottom of grid */}
-                    <div style={{ paddingBottom: 40 }}>
-                      <PodiumPlayerCard player={top3[1]} rank={2} />
-                    </div>
-                    {/* 1st — tallest, no padding */}
-                    <div>
-                      <PodiumPlayerCard player={top3[0]} rank={1} />
-                    </div>
-                    {/* 3rd — lower than 2nd */}
-                    <div style={{ paddingBottom: 60 }}>
-                      <PodiumPlayerCard player={top3[2]} rank={3} />
+                  {/* Aspect-ratio stage: cards overlay platform tops (viewBox 600×160) */}
+                  <div style={{ position: 'relative', width: '100%' }}>
+                    <div style={{ width: '100%', paddingBottom: '26.667%' }} />
+                    <motion.div
+                      initial={{ opacity: 0, scaleX: 0.8 }}
+                      whileInView={{ opacity: 1, scaleX: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
+                      style={{ position: 'absolute', inset: 0 }}
+                    >
+                      <PodiumPlatform />
+                    </motion.div>
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'grid',
+                      gridTemplateColumns: '29.2% 30% 29.2%',
+                      columnGap: '5.8%',
+                      alignItems: 'flex-end',
+                      padding: '0 3.3%',
+                      boxSizing: 'border-box',
+                      pointerEvents: 'none',
+                    }}>
+                      <div style={{ paddingBottom: '13.33%', pointerEvents: 'auto' }}>
+                        <PodiumPlayerCard player={top3[1]} rank={2} />
+                      </div>
+                      <div style={{ paddingBottom: '20%', pointerEvents: 'auto' }}>
+                        <PodiumPlayerCard player={top3[0]} rank={1} />
+                      </div>
+                      <div style={{ paddingBottom: '10%', pointerEvents: 'auto' }}>
+                        <PodiumPlayerCard player={top3[2]} rank={3} />
+                      </div>
                     </div>
                   </div>
-
-                  {/* SVG Platform below cards */}
-                  <motion.div
-                    initial={{ opacity: 0, scaleX: 0.8 }}
-                    whileInView={{ opacity: 1, scaleX: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-                  >
-                    <PodiumPlatform />
-                  </motion.div>
                 </div>
               </div>
             </section>
