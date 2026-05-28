@@ -275,6 +275,7 @@ public class TournamentImportService {
                 request.setFullName(resolved.parsedPlayer().fullName());
                 request.setFaculty(resolved.faculty());
                 request.setCareer(resolved.career());
+                request.setEloRating(resolved.parsedPlayer().excelElo());
                 Long newId = playerService.create(request).getId();
                 player = importPlayerRepository.findById(newId)
                         .orElseThrow(() -> new BadRequestException("Failed to create player"));

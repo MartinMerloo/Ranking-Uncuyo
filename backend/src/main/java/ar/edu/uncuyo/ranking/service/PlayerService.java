@@ -1,5 +1,10 @@
 package ar.edu.uncuyo.ranking.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import ar.edu.uncuyo.ranking.dto.PlayerRequest;
 import ar.edu.uncuyo.ranking.dto.PlayerResponse;
 import ar.edu.uncuyo.ranking.exception.BadRequestException;
@@ -7,10 +12,6 @@ import ar.edu.uncuyo.ranking.exception.ResourceNotFoundException;
 import ar.edu.uncuyo.ranking.model.Player;
 import ar.edu.uncuyo.ranking.repository.MatchRepository;
 import ar.edu.uncuyo.ranking.repository.PlayerRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class PlayerService {
@@ -43,33 +44,46 @@ public class PlayerService {
     @Transactional
     public PlayerResponse create(PlayerRequest request) {
         Player player = new Player();
+
         player.setFullName(request.getFullName().trim());
         player.setFaculty(request.getFaculty().trim());
         player.setCareer(request.getCareer().trim());
-        player.setEloRating(eloCalculationService.getInitialRating());
+
+        // Use imported Excel ELO if present, otherwise default initial rating
+        player.setEloRating(
+                request.getEloRating() != null
+                        ? request.getEloRating()
+                        : eloCalculationService.getInitialRating()
+        );
+
         player.setWins(0);
         player.setByeWins(0);
         player.setLosses(0);
         player.setDraws(0);
         player.setGamesPlayed(0);
+
         return PlayerResponse.from(playerRepository.save(player));
     }
 
     @Transactional
     public PlayerResponse update(Long id, PlayerRequest request) {
         Player player = getPlayerOrThrow(id);
+
         player.setFullName(request.getFullName().trim());
         player.setFaculty(request.getFaculty().trim());
         player.setCareer(request.getCareer().trim());
+
         return PlayerResponse.from(playerRepository.save(player));
     }
 
     @Transactional
     public void delete(Long id) {
         Player player = getPlayerOrThrow(id);
+
         if (matchRepository.existsByWhitePlayerIdOrBlackPlayerId(id, id)) {
             throw new BadRequestException("No se puede eliminar un jugador con partidas registradas");
         }
+
         playerRepository.delete(player);
     }
 

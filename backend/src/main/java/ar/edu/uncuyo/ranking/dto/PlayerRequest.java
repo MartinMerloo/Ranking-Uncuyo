@@ -13,6 +13,9 @@ public class PlayerRequest {
     @NotBlank(message = "Career is required")
     private String career;
 
+    // Optional: used when importing players from Excel
+    private Integer eloRating;
+
     public String getFullName() {
         return fullName;
     }
@@ -35,5 +38,13 @@ public class PlayerRequest {
 
     public void setCareer(String career) {
         this.career = career;
+    }
+
+    public Integer getEloRating() {
+        return eloRating;
+    }
+
+    public void setEloRating(Integer eloRating) {
+        this.eloRating = eloRating;
     }
 }
