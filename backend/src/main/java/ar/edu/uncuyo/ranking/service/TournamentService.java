@@ -175,16 +175,20 @@ public class TournamentService {
         int matchWins = s[0];
         int draws = s[1];
         int losses = s[2];
-        int gamesPlayed = s[3];
+        int matchRounds = s[3];
         int byes = byeCountsByPlayer.getOrDefault(playerId, 0);
-        double points = matchWins + (draws * 0.5) + byes;
+
+        // BYEs count as wins (1 point each) — merge into wins and rounds played
+        int totalWins = matchWins + byes;
+        int totalGamesPlayed = matchRounds + byes;
+        double points = totalWins + (draws * 0.5);
 
         String name = names.getOrDefault(playerId, lookupPlayerNameFromMatches(playerId));
 
         return new TournamentStandingEntry(
                 playerId, name,
-                points, matchWins, draws, losses,
-                byes, gamesPlayed);
+                points, totalWins, draws, losses,
+                0, totalGamesPlayed);
     }
 
     private String lookupPlayerNameFromMatches(Long playerId) {

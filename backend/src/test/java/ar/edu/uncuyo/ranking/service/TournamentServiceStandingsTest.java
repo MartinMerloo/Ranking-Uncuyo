@@ -76,8 +76,9 @@ class TournamentServiceStandingsTest {
                 .findFirst()
                 .orElseThrow();
         assertThat(byeOnly.getPoints()).isEqualTo(5.0);
-        assertThat(byeOnly.getByes()).isEqualTo(5);
-        assertThat(byeOnly.getGamesPlayed()).isZero();
+        assertThat(byeOnly.getWins()).isEqualTo(5);
+        assertThat(byeOnly.getByes()).isZero();
+        assertThat(byeOnly.getGamesPlayed()).isEqualTo(5);
     }
 
     @Test
@@ -96,11 +97,12 @@ class TournamentServiceStandingsTest {
                 .filter(s -> s.getPlayerId().equals(1L))
                 .findFirst()
                 .orElseThrow();
-        assertThat(aliceStanding.getByes()).isEqualTo(1);
+        assertThat(aliceStanding.getByes()).isZero();
         assertThat(aliceStanding.getPoints()).isEqualTo(2.5);
-        assertThat(aliceStanding.getWins()).isEqualTo(1);
+        assertThat(aliceStanding.getWins()).isEqualTo(2);   // 1 match win + 1 BYE win
         assertThat(aliceStanding.getDraws()).isEqualTo(1);
         assertThat(aliceStanding.getLosses()).isEqualTo(1);
+        assertThat(aliceStanding.getGamesPlayed()).isEqualTo(4); // 3 match rounds + 1 BYE round
     }
 
     @Test
