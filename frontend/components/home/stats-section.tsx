@@ -64,7 +64,7 @@ export function StatsSection() {
 
         const highestElo =
           playersData.length > 0
-            ? Math.max(...playersData.map((p: any) => p.elo))
+            ? Math.max(...playersData.map((p: any) => p.eloRating ?? 0))
             : 0
 
         setStats({

@@ -65,7 +65,9 @@ export function Footer() {
             <div className="flex gap-3">
               <motion.a
                 whileHover={{ y: -2 }}
-                href="#"
+                href="https://github.com/MartinMerloo/Ranking-Uncuyo"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
                 aria-label="GitHub"
               >
