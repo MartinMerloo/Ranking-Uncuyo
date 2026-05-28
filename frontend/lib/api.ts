@@ -120,6 +120,8 @@ export interface ApiStandingEntry {
   losses: number
   byes: number
   gamesPlayed: number
+  des2: number
+  des3: number
 }
 
 export interface ApiMatch {

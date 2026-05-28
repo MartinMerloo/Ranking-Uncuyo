@@ -303,15 +303,19 @@ public class TournamentImportService {
             Long tournamentId,
             ImportPlan plan,
             Map<Integer, Player> seedToPlayer) {
-        Map<Player, Integer> playerByeCounts = new LinkedHashMap<>();
+        Map<Player, TournamentService.ParticipantData> playerData = new LinkedHashMap<>();
         for (ResolvedPlayer resolved : plan.resolvedPlayers()) {
             Player player = seedToPlayer.get(resolved.parsedPlayer().seed());
             if (player == null) {
                 continue;
             }
-            playerByeCounts.put(player, resolved.parsedPlayer().byeRounds().size());
+            playerData.put(player, new TournamentService.ParticipantData(
+                    resolved.parsedPlayer().byeRounds().size(),
+                    resolved.parsedPlayer().des2(),
+                    resolved.parsedPlayer().des3()
+            ));
         }
-        tournamentService.registerImportedParticipants(tournamentId, playerByeCounts);
+        tournamentService.registerImportedParticipants(tournamentId, playerData);
     }
 
     private Long createTournament(ImportPlan plan) {

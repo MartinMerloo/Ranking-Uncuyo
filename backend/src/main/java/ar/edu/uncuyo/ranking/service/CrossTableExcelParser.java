@@ -39,6 +39,8 @@ public class CrossTableExcelParser {
     private static final int COL_ELO = 3;
     private static final int CLASSIFICATION_COL_SEED = 0;
     private static final int CLASSIFICATION_COL_CLUB = 6;
+    private static final int CLASSIFICATION_COL_DES2 = 9;
+    private static final int CLASSIFICATION_COL_DES3 = 10;
 
     private static final Pattern ROUND_RESULT_PATTERN =
             Pattern.compile("^(\\d+)([bw])(.+)$", Pattern.CASE_INSENSITIVE);
@@ -72,7 +74,7 @@ public class CrossTableExcelParser {
             AcademicColumns academicColumns = detectAcademicColumns(headerRow);
             boolean hasExplicitAcademicColumns = academicColumns.hasBoth();
 
-            Map<Integer, String> seedToClub = hasExplicitAcademicColumns
+            Map<Integer, ClassificationData> seedToClassification = hasExplicitAcademicColumns
                     ? Map.of()
                     : (classificationFile != null && !classificationFile.isEmpty()
                             ? parseClassificationFile(classificationFile)
@@ -96,9 +98,12 @@ public class CrossTableExcelParser {
                 }
 
                 int excelElo = readElo(row.getCell(COL_ELO));
-                String clubCiudad = hasExplicitAcademicColumns
-                        ? ""
-                        : seedToClub.getOrDefault(seed.get(), "");
+                ClassificationData classData = hasExplicitAcademicColumns
+                        ? null
+                        : seedToClassification.get(seed.get());
+                String clubCiudad = (classData != null) ? classData.clubCiudad() : "";
+                double des2 = (classData != null) ? classData.des2() : 0.0;
+                double des3 = (classData != null) ? classData.des3() : 0.0;
 
                 String faculty = "";
                 String career = "";
@@ -136,7 +141,9 @@ public class CrossTableExcelParser {
                         faculty,
                         career,
                         roundResults,
-                        byeRounds));
+                        byeRounds,
+                        des2,
+                        des3));
             }
 
             if (players.isEmpty()) {
@@ -157,8 +164,8 @@ public class CrossTableExcelParser {
         }
     }
 
-    private Map<Integer, String> parseClassificationFile(MultipartFile classificationFile) {
-        Map<Integer, String> seedToClub = new HashMap<>();
+    private Map<Integer, ClassificationData> parseClassificationFile(MultipartFile classificationFile) {
+        Map<Integer, ClassificationData> result = new HashMap<>();
         try (InputStream inputStream = classificationFile.getInputStream();
              Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -172,14 +179,29 @@ public class CrossTableExcelParser {
                     continue;
                 }
                 String club = readCell(row.getCell(CLASSIFICATION_COL_CLUB));
-                if (club != null && !club.isBlank()) {
-                    seedToClub.put(seed.get(), club.trim());
-                }
+                double des2 = readDouble(row.getCell(CLASSIFICATION_COL_DES2));
+                double des3 = readDouble(row.getCell(CLASSIFICATION_COL_DES3));
+                result.put(seed.get(), new ClassificationData(
+                        club != null ? club.trim() : "",
+                        des2,
+                        des3));
             }
         } catch (IOException ex) {
             throw new BadRequestException("Could not read classification Excel: " + ex.getMessage());
         }
-        return seedToClub;
+        return result;
+    }
+
+    private double readDouble(Cell cell) {
+        String value = readCell(cell);
+        if (value == null || value.isBlank()) {
+            return 0.0;
+        }
+        try {
+            return Double.parseDouble(value.replace(",", "."));
+        } catch (NumberFormatException ex) {
+            return 0.0;
+        }
     }
 
     private boolean looksLikeCrossTable(Sheet sheet) {
@@ -387,8 +409,12 @@ public class CrossTableExcelParser {
             String faculty,
             String career,
             List<ParsedRoundResult> roundResults,
-            List<Integer> byeRounds) {
+            List<Integer> byeRounds,
+            double des2,
+            double des3) {
     }
+
+    public record ClassificationData(String clubCiudad, double des2, double des3) {}
 
     public record ParsedRoundResult(int round, ParsedRoundResultData data) {
     }

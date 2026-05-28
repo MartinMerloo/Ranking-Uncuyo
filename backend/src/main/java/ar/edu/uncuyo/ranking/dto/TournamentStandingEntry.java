@@ -10,11 +10,14 @@ public class TournamentStandingEntry {
     private int losses;
     private int byes;
     private int gamesPlayed;
+    private double des2;
+    private double des3;
 
     public TournamentStandingEntry(
             Long playerId, String playerName,
             double points, int wins, int draws, int losses,
-            int byes, int gamesPlayed) {
+            int byes, int gamesPlayed,
+            double des2, double des3) {
         this.playerId = playerId;
         this.playerName = playerName;
         this.points = points;
@@ -23,6 +26,8 @@ public class TournamentStandingEntry {
         this.losses = losses;
         this.byes = byes;
         this.gamesPlayed = gamesPlayed;
+        this.des2 = des2;
+        this.des3 = des3;
     }
 
     public Long getPlayerId()    { return playerId; }
@@ -33,4 +38,6 @@ public class TournamentStandingEntry {
     public int getLosses()       { return losses; }
     public int getByes()         { return byes; }
     public int getGamesPlayed()  { return gamesPlayed; }
+    public double getDes2()      { return des2; }
+    public double getDes3()      { return des3; }
 }

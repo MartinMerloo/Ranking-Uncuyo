@@ -33,6 +33,16 @@ public class TournamentParticipant {
     @Column(nullable = false)
     private int byeCount;
 
+    // Tiebreak: Sonneborn-Berger cortado (Swiss Manager col 9)
+    // Run: ALTER TABLE tournament_participants ADD COLUMN IF NOT EXISTS des2 DOUBLE PRECISION DEFAULT 0;
+    @Column
+    private Double des2;
+
+    // Tiebreak: Buchholz (Swiss Manager col 10)
+    // Run: ALTER TABLE tournament_participants ADD COLUMN IF NOT EXISTS des3 DOUBLE PRECISION DEFAULT 0;
+    @Column
+    private Double des3;
+
     public TournamentParticipant() {
     }
 
@@ -66,5 +76,21 @@ public class TournamentParticipant {
 
     public void setByeCount(int byeCount) {
         this.byeCount = byeCount;
+    }
+
+    public Double getDes2() {
+        return des2;
+    }
+
+    public void setDes2(Double des2) {
+        this.des2 = des2;
+    }
+
+    public Double getDes3() {
+        return des3;
+    }
+
+    public void setDes3(Double des3) {
+        this.des3 = des3;
     }
 }

@@ -309,7 +309,7 @@ function FinalTableTab({ standings }: { standings: ApiStandingEntry[] }) {
     return 'var(--text-secondary)'
   }
 
-  const headers = ['Pos', 'Jugador', 'Pts', 'V', 'T', 'D', ...(hasByes ? ['BYE'] : []), 'PJ']
+  const headers = ['Pos', 'Jugador', 'Pts', 'V', 'T', 'D', ...(hasByes ? ['BYE'] : []), 'SB/C', 'BH:G', 'PJ']
 
   return (
     <motion.div
@@ -377,7 +377,7 @@ function FinalTableTab({ standings }: { standings: ApiStandingEntry[] }) {
                 </td>
 
                 {player.gamesPlayed === 0 && player.points === 0 && player.byes === 0 ? (
-                  <td colSpan={hasByes ? 5 : 4} style={{ padding: '12px 16px', textAlign: 'center' }}>
+                  <td colSpan={hasByes ? 7 : 6} style={{ padding: '12px 16px', textAlign: 'center' }}>
                     <span style={{
                       fontSize: 11, color: 'var(--text-secondary)',
                       background: 'rgba(138,155,176,0.1)',
@@ -403,6 +403,17 @@ function FinalTableTab({ standings }: { standings: ApiStandingEntry[] }) {
                         <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{player.byes}</span>
                       </td>
                     )}
+
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {player.des2 % 1 === 0 ? player.des2 : player.des2.toFixed(2)}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {player.des3 % 1 === 0 ? player.des3 : player.des3.toFixed(1)}
+                      </span>
+                    </td>
 
                     <td style={{ padding: '12px 10px', textAlign: 'center' }}>
                       <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{player.gamesPlayed}</span>

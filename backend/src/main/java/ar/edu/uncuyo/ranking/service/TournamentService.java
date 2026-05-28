@@ -61,18 +61,22 @@ public class TournamentService {
         return TournamentResponse.from(tournamentRepository.save(tournament));
     }
 
+    public record ParticipantData(int byeCount, double des2, double des3) {}
+
     /**
      * Persists the full tournament roster from an Excel import, including players who only
      * received byes and therefore have no {@link Match} rows.
      */
     @Transactional
-    public void registerImportedParticipants(Long tournamentId, Map<Player, Integer> playerByeCounts) {
+    public void registerImportedParticipants(Long tournamentId, Map<Player, ParticipantData> playerData) {
         Tournament tournament = getTournamentOrThrow(tournamentId);
-        for (Map.Entry<Player, Integer> entry : playerByeCounts.entrySet()) {
+        for (Map.Entry<Player, ParticipantData> entry : playerData.entrySet()) {
             TournamentParticipant participant = new TournamentParticipant();
             participant.setTournament(tournament);
             participant.setPlayer(entry.getKey());
-            participant.setByeCount(Math.max(0, entry.getValue()));
+            participant.setByeCount(Math.max(0, entry.getValue().byeCount()));
+            participant.setDes2(entry.getValue().des2());
+            participant.setDes3(entry.getValue().des3());
             participantRepository.save(participant);
         }
     }
@@ -110,22 +114,30 @@ public class TournamentService {
             names.putIfAbsent(player.getId(), player.getFullName());
         }
 
+        Map<Long, double[]> tiebreaks = new LinkedHashMap<>();
+        for (TournamentParticipant participant : participants) {
+            double d2 = participant.getDes2() != null ? participant.getDes2() : 0.0;
+            double d3 = participant.getDes3() != null ? participant.getDes3() : 0.0;
+            tiebreaks.put(participant.getPlayer().getId(), new double[]{d2, d3});
+        }
+
         Map<Long, Integer> byeCountsByPlayer = resolveByeCounts(tournamentId, totalRounds, stats, participants);
         Set<Long> playerIds = resolvePlayerUniverse(tournamentId, stats, byeCountsByPlayer);
 
         return playerIds.stream()
-        .map(pid -> buildStandingEntry(pid, names, stats, byeCountsByPlayer))
-        .sorted(
-                Comparator
-                        .comparingDouble(TournamentStandingEntry::getPoints)
-                        .reversed()
-                        .thenComparing(
-                                Comparator.comparingInt(TournamentStandingEntry::getWins)
-                                        .reversed()
-                        )
-                        .thenComparing(TournamentStandingEntry::getPlayerName)
-        )
-        .collect(Collectors.toList());
+                .map(pid -> buildStandingEntry(pid, names, stats, byeCountsByPlayer, tiebreaks))
+                .sorted((a, b) -> {
+                    int cmp = Double.compare(b.getPoints(), a.getPoints());
+                    if (cmp != 0) return cmp;
+                    cmp = Double.compare(b.getDes2(), a.getDes2());
+                    if (cmp != 0) return cmp;
+                    cmp = Double.compare(b.getDes3(), a.getDes3());
+                    if (cmp != 0) return cmp;
+                    cmp = Integer.compare(b.getWins(), a.getWins());
+                    if (cmp != 0) return cmp;
+                    return a.getPlayerName().compareTo(b.getPlayerName());
+                })
+                .collect(Collectors.toList());
     }
 
     private Map<Long, Integer> resolveByeCounts(
@@ -177,7 +189,8 @@ public class TournamentService {
             Long playerId,
             Map<Long, String> names,
             Map<Long, int[]> stats,
-            Map<Long, Integer> byeCountsByPlayer) {
+            Map<Long, Integer> byeCountsByPlayer,
+            Map<Long, double[]> tiebreaks) {
         int[] s = stats.getOrDefault(playerId, new int[4]);
         int matchWins = s[0];
         int draws = s[1];
@@ -190,12 +203,17 @@ public class TournamentService {
         int totalGamesPlayed = matchRounds + byes;
         double points = totalWins + (draws * 0.5);
 
+        double[] tb = tiebreaks.getOrDefault(playerId, new double[]{0.0, 0.0});
+        double des2 = tb[0];
+        double des3 = tb[1];
+
         String name = names.getOrDefault(playerId, lookupPlayerNameFromMatches(playerId));
 
         return new TournamentStandingEntry(
                 playerId, name,
                 points, totalWins, draws, losses,
-                0, totalGamesPlayed);
+                0, totalGamesPlayed,
+                des2, des3);
     }
 
     private String lookupPlayerNameFromMatches(Long playerId) {
