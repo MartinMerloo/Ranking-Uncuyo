@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -324,7 +325,9 @@ public class TournamentImportService {
 
     private int createMatches(ImportPlan plan, Map<Integer, Player> seedToPlayer, Long tournamentId) {
         LocalDate today = LocalDate.now();
-        int created = 0;
+
+        record MatchToCreate(int round, Player white, Player black, MatchResult result) {}
+        List<MatchToCreate> allMatches = new ArrayList<>();
 
         for (ResolvedPlayer resolved : plan.resolvedPlayers()) {
             ParsedPlayer parsedPlayer = resolved.parsedPlayer();
@@ -332,17 +335,12 @@ public class TournamentImportService {
 
             for (ParsedRoundResult roundResult : parsedPlayer.roundResults()) {
                 ParsedRoundResultData data = roundResult.data();
-                if (parsedPlayer.seed() >= data.opponentSeed()) {
-                    continue;
-                }
+                if (parsedPlayer.seed() >= data.opponentSeed()) continue;
 
                 Player opponent = seedToPlayer.get(data.opponentSeed());
-                if (opponent == null) {
-                    continue;
-                }
+                if (opponent == null) continue;
 
-                Player white;
-                Player black;
+                Player white, black;
                 if (data.color() == 'w') {
                     white = currentPlayer;
                     black = opponent;
@@ -352,21 +350,24 @@ public class TournamentImportService {
                 }
 
                 MatchResult matchResult = crossTableExcelParser.toMatchResult(data.color(), data.playerScore());
-
-                MatchRequest matchRequest = new MatchRequest();
-                matchRequest.setTournamentId(tournamentId);
-                matchRequest.setRound(roundResult.round());
-                matchRequest.setWhitePlayerId(white.getId());
-                matchRequest.setBlackPlayerId(black.getId());
-                matchRequest.setResult(matchResult);
-                matchRequest.setDate(today);
-
-                matchService.create(matchRequest);
-                created++;
+                allMatches.add(new MatchToCreate(roundResult.round(), white, black, matchResult));
             }
         }
 
-        return created;
+        allMatches.sort(Comparator.comparingInt(MatchToCreate::round));
+
+        for (MatchToCreate m : allMatches) {
+            MatchRequest matchRequest = new MatchRequest();
+            matchRequest.setTournamentId(tournamentId);
+            matchRequest.setRound(m.round());
+            matchRequest.setWhitePlayerId(m.white().getId());
+            matchRequest.setBlackPlayerId(m.black().getId());
+            matchRequest.setResult(m.result());
+            matchRequest.setDate(today);
+            matchService.create(matchRequest);
+        }
+
+        return allMatches.size();
     }
 
     private int applyByeWins(ImportPlan plan, Map<Integer, Player> seedToPlayer) {
