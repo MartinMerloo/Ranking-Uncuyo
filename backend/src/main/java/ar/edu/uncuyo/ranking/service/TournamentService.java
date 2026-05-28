@@ -1,5 +1,16 @@
 package ar.edu.uncuyo.ranking.service;
 
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import ar.edu.uncuyo.ranking.dto.TournamentRequest;
 import ar.edu.uncuyo.ranking.dto.TournamentResponse;
 import ar.edu.uncuyo.ranking.dto.TournamentStandingEntry;
@@ -11,16 +22,6 @@ import ar.edu.uncuyo.ranking.model.TournamentParticipant;
 import ar.edu.uncuyo.ranking.repository.MatchRepository;
 import ar.edu.uncuyo.ranking.repository.TournamentParticipantRepository;
 import ar.edu.uncuyo.ranking.repository.TournamentRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class TournamentService {
@@ -113,12 +114,18 @@ public class TournamentService {
         Set<Long> playerIds = resolvePlayerUniverse(tournamentId, stats, byeCountsByPlayer);
 
         return playerIds.stream()
-                .map(pid -> buildStandingEntry(pid, names, stats, byeCountsByPlayer))
-                .sorted(Comparator
-                        .comparingDouble(TournamentStandingEntry::getPoints).reversed()
-                        .thenComparingInt(TournamentStandingEntry::getWins).reversed()
-                        .thenComparing(TournamentStandingEntry::getPlayerName))
-                .collect(Collectors.toList());
+        .map(pid -> buildStandingEntry(pid, names, stats, byeCountsByPlayer))
+        .sorted(
+                Comparator
+                        .comparingDouble(TournamentStandingEntry::getPoints)
+                        .reversed()
+                        .thenComparing(
+                                Comparator.comparingInt(TournamentStandingEntry::getWins)
+                                        .reversed()
+                        )
+                        .thenComparing(TournamentStandingEntry::getPlayerName)
+        )
+        .collect(Collectors.toList());
     }
 
     private Map<Long, Integer> resolveByeCounts(
