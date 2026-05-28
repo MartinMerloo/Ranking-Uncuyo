@@ -117,16 +117,16 @@ class TournamentServiceStandingsTest {
 
         List<TournamentStandingEntry> standings = tournamentService.getStandings(11L);
 
-        assertThat(standings.get(0).getPlayerId()).isEqualTo(1L);
-        assertThat(standings.get(0).getPoints()).isEqualTo(1.5);
-        assertThat(standings.get(1).getPlayerId()).isEqualTo(3L);
+        assertThat(standings.get(0).getPlayerId()).isEqualTo(3L);   // carol: 1 win → 1.0 pts
+        assertThat(standings.get(0).getPoints()).isEqualTo(1.0);
+        assertThat(standings.get(1).getPlayerId()).isEqualTo(1L);   // alice: 0.5 pts, alphabetical tiebreak over bob
         assertThat(standings.get(2).getPlayerId()).isEqualTo(2L);
     }
 
     @Test
     void registerImportedParticipantsMakesRosterAvailableOnNextStandingsCall() {
         when(tournamentRepository.findById(11L)).thenReturn(Optional.of(tournament));
-        tournamentService.registerImportedParticipants(11L, Map.of(carol, 4));
+        tournamentService.registerImportedParticipants(11L, Map.of(carol, new TournamentService.ParticipantData(4, 0.0, 0.0)));
 
         when(participantRepository.findByTournamentId(11L)).thenReturn(List.of(participant(carol, 4)));
         when(matchRepository.findByTournamentIdOrderByRoundAscIdAsc(11L)).thenReturn(List.of());
