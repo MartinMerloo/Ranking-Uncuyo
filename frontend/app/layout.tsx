@@ -16,10 +16,23 @@ const dmSans = DM_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'Ranking UnCuyo | Liga de Ajedrez Universitaria',
-  description: 'Ranking oficial de la Liga de Ajedrez Universitaria de la Universidad Nacional de Cuyo. Consulta las posiciones, estadísticas y perfiles de los jugadores que compiten en esta apasionante liga de ajedrez.',
-  generator: 'v0.app',
-  keywords: ['chess', 'ranking', 'UnCuyo', 'university', 'tournament', 'ELO'],
+  title: 'Ranking UNCuyo | Liga de Ajedrez Universitaria',
+  description: 'Ranking oficial de la Liga de Ajedrez Universitaria de la Universidad Nacional de Cuyo. Consultá las posiciones, estadísticas y perfiles de los jugadores.',
+  metadataBase: new URL('https://ranking-uncuyo.vercel.app'),
+  keywords: ['chess', 'ranking', 'UNCuyo', 'university', 'tournament', 'ELO'],
+  openGraph: {
+    title: 'Ranking UNCuyo | Liga de Ajedrez Universitaria',
+    description: 'Ranking oficial de la Liga de Ajedrez Universitaria de la Universidad Nacional de Cuyo.',
+    url: 'https://ranking-uncuyo.vercel.app',
+    siteName: 'Ranking UNCuyo',
+    locale: 'es_AR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ranking UNCuyo | Liga de Ajedrez Universitaria',
+    description: 'Ranking oficial de la Liga de Ajedrez Universitaria de la UNCuyo.',
+  },
   icons: {
     icon: [
       {
