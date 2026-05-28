@@ -37,7 +37,7 @@ public class CrossTableExcelParser {
     private static final int COL_SEED = 0;
     private static final int COL_NAME = 2;
     private static final int COL_ELO = 3;
-    private static final int CLASSIFICATION_COL_SEED = 0;
+    private static final int CLASSIFICATION_COL_SEED = 1;  // No.Ini — initial seed used in cross table
     private static final int CLASSIFICATION_COL_CLUB = 6;
     private static final int CLASSIFICATION_COL_DES2 = 9;
     private static final int CLASSIFICATION_COL_DES3 = 10;
