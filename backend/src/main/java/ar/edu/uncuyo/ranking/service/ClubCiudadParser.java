@@ -93,6 +93,9 @@ public class ClubCiudadParser {
                  "CIENCIAS APLICADAS A LA INDUSTRIA", "CAI"
                 -> "Facultad de Ciencias Aplicadas a la Industria";
 
+            case "OTRO", "OTHER"
+                -> "Otro";
+
             // Unknown: return capitalized raw so it's visible in Step 2
             default -> capitalizeFirst(raw);
         };

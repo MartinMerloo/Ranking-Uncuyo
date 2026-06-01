@@ -12,4 +12,5 @@ export const uncuyoFaculties = [
   'Facultad de Ciencias Agrarias',
   'Facultad de Odontología',
   'Facultad de Ciencias Aplicadas a la Industria',
+  'Otro',
 ] as const
