@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Crown, Github, Twitter, Mail } from 'lucide-react'
+import { Crown, Mail } from 'lucide-react'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -65,25 +65,23 @@ export function Footer() {
             <div className="flex gap-3">
               <motion.a
                 whileHover={{ y: -2 }}
-                href="https://github.com/MartinMerloo/Ranking-Uncuyo"
+                href="https://www.instagram.com/clubuncuyoajedrez/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
-                aria-label="GitHub"
+                aria-label="Instagram"
               >
-                <Github className="w-4 h-4" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <circle cx="12" cy="12" r="4"/>
+                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+                </svg>
               </motion.a>
               <motion.a
                 whileHover={{ y: -2 }}
-                href="#"
-                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-4 h-4" />
-              </motion.a>
-              <motion.a
-                whileHover={{ y: -2 }}
-                href="#"
+                href="mailto:martinmerlo360@gmail.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
                 aria-label="Email"
               >
